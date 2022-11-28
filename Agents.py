@@ -1,7 +1,6 @@
 import copy
 import random
 import chess
-import NeuralNetworks
 import time
 
 # My Abstract Class
@@ -66,6 +65,7 @@ class HumanAgent(Agent):
 
 class NeuralNetOnly(Agent):
     def __init__(self) -> None:
+        import NeuralNetworks
         self.neural_net = NeuralNetworks.MLP()
         super().__init__()
     
@@ -83,18 +83,83 @@ class NeuralNetOnly(Agent):
 class PureMCTS(Agent):
 
     class Node:
-        def __init__(self):
+        def __init__(self, board, id):
             self.children = []
             self.wins = 0
             self.visits = 0
+            self.board = board
+            self.id = id
         
         def MultiArmBandit(self, actions):
             return random.choice(actions)
 
-    def __init__(self) -> None:
+    def __init__(self):
         self.time_limit = 1
+        self.move_number = 0
+        self.next_node_id = 0
         super().__init__()
+
+    def get_id(self):
+        self.next_node_id += 1
+        return self.next_node_id
     
     def move(self, actions, board):
-        
+
+        self.move_number += 1
+
+        end = time.time() + self.time_limit
+
+        count = 1
+
+        if self.move_number == 1:
+            root_node = self.Node(board, self.get_id())
+        else:
+            root_node = self.Node(board, self.get_id())
+
+        while time.time() < end:
+            count += 1
+
+            # Simulation
+            simulation_node = root_node
+
+            simulation_board = simulation_node.board
+            my_move = random.choice(list(actions))
+
+            count2 = 0
+
+            while count2 < 1000:
+                count2 += 1
+
+                opposition_board = self.generate_next_board(simulation_board, my_move)
+
+                if opposition_board.is_checkmate():
+                    break
+                elif opposition_board.is_stalemate():
+                    break
+                elif opposition_board.is_insufficient_material():
+                    break
+                elif opposition_board.is_fivefold_repetition():
+                    break
+
+                opposition_available_actions = opposition_board.legal_moves
+                opposition_move = random.choice(list(opposition_available_actions))
+
+                simulation_board = self.generate_next_board(opposition_board, opposition_move)
+
+                if simulation_board.is_checkmate():
+                    break
+                elif simulation_board.is_stalemate():
+                    break
+                elif simulation_board.is_insufficient_material():
+                    break
+                elif simulation_board.is_fivefold_repetition():
+                    break
+
+                available_actions = simulation_board.legal_moves
+                my_move = random.choice(list(available_actions))
+            
+            print("Simulation depth:", count2)
+
+        print("\nMove:", self.move_number, "Simulated Nodes:", count, "\n")
+
         return super().move(actions, board)
