@@ -127,12 +127,15 @@ class PureMCTS(Agent):
 
             count2 = 0
 
+            game_result = 0.5
+
             while count2 < 1000:
                 count2 += 1
 
                 opposition_board = self.generate_next_board(simulation_board, my_move)
 
                 if opposition_board.is_checkmate():
+                    game_result = 1
                     break
                 elif opposition_board.is_stalemate():
                     break
@@ -147,6 +150,7 @@ class PureMCTS(Agent):
                 simulation_board = self.generate_next_board(opposition_board, opposition_move)
 
                 if simulation_board.is_checkmate():
+                    game_result = 0
                     break
                 elif simulation_board.is_stalemate():
                     break
@@ -158,7 +162,7 @@ class PureMCTS(Agent):
                 available_actions = simulation_board.legal_moves
                 my_move = random.choice(list(available_actions))
             
-            print("Simulation depth:", count2)
+            print("Simulation depth:", count2, "Result", game_result)
 
         print("\nMove:", self.move_number, "Simulated Nodes:", count, "\n")
 
