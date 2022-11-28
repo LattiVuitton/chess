@@ -1,0 +1,8 @@
+Notes
+
+Python
+Issues with Simulation:
+    - Without Neural Network, most simulations end in draw
+    - Many simulations are too deep, wasting time
+    - As such, a poor understanding of the value of an action is gained
+    - 
