@@ -2,7 +2,9 @@ const chess = require('chess.js')
 const { count } = require('console')
 
 class Node{
-    constructor(id, board, )
+    constructor(id, board, parent) {
+        
+    }
 }
 
 var game = new chess.Chess()
