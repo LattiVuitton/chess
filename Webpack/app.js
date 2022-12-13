@@ -6,13 +6,18 @@ board = Chessboard('myBoard', "start")
 
 var agents = require('./Agents');
 
+var simulateButton = document.getElementById("CompVComp");
 var startButton = document.getElementById("startButton");
 
-startButton.addEventListener("click", function () {
-    playGame()
+simulateButton.addEventListener("click", function () {
+    simulateGame()
 }, false);
 
-function playGame() {
+startButton.addEventListener("click", function () {
+    playGame(true)
+}, false);
+
+function simulateGame() {
         
     const agent1 = agents.getAgent("MCTS", 1, true);
     const agent2 = agents.getAgent("random", 2, false);
@@ -22,8 +27,6 @@ function playGame() {
     draws = 0
 
     const roundsToPlay = 5
-
-    console.log("")
 
     for (let i = 0; i < roundsToPlay; i++){
 
@@ -59,5 +62,19 @@ function playGame() {
     console.log("Agent " + agent2.id + "       :  " + agent2Wins + " (" + Math.round((100 * agent2Wins / gamesPlayed + Number.EPSILON) * round) / round + " %)")
     console.log("Draws         :  " + draws + " (" + Math.round((100 * draws / gamesPlayed + Number.EPSILON) * round) / round + " %)")
     console.log("")
+
+}
+
+function playGame(WorB) {
+    console.log("Starting game");
+
+    if (WorB) {
+        const agent1 = agents.getAgent("MCTS", 1, true);
+        const agent2 = agents.getAgent("random", 2, false);
+    }
+
+    else {
+        
+    }
 
 }
