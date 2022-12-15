@@ -7,12 +7,14 @@ const chess = require('chess.js')
 var game = new chess.Chess()
 
 
-function onDragStart (source, piece, position, orientation) {
+function onDragStart(source, piece, position, orientation) {
+
     // do not pick up pieces if the game is over
     if (game.isGameOver()) return false
-  
-    // only pick up pieces for White
-    if (piece.search(/^b/) !== -1) return false
+
+    if (WorB && (piece.search(/^b/) !== -1)) return false
+    if (!WorB && (piece.search(/^w/) !== -1)) return false
+
   }
   
   function makeRandomMove () {
@@ -28,12 +30,14 @@ function onDragStart (source, piece, position, orientation) {
   
 function onDrop(source, target) {
       
+    gameActive = true
+
     var promoting = false;
     var newMove = null;
 
     // Checking if move is a promotion
     firstLetter = target.split("")[1];
-    if (firstLetter === BOARD_WIDTH.toString()) {
+    if (firstLetter === BOARD_WIDTH.toString() || firstLetter === "1") {
         piece = game.get(source);
         if (piece.type === 'p') {
             promoting = true;
@@ -106,6 +110,16 @@ colorButton.addEventListener("click", function () {
     swapColor()
 }, false);
 
+// Agent listeners --------------------------- start
+colorButton.addEventListener("click", function () {
+    swapColor()
+}, false);
+
+// Agent listeners --------------------------- end
+
+
+
+
 function swapColor() {
     if (gameActive) {
         return
@@ -126,6 +140,7 @@ function swapColor() {
         color = "Black"
         gameActive = true
         window.setTimeout(computerMove(board, game.moves()), 250)
+        onSnapEnd()
     }
     else {
         var config = {
@@ -147,53 +162,53 @@ function swapColor() {
 //     }
 // }
 
-// function simulateGame() {
+function simulateGame() {
         
-//     const agent1 = agents.getAgent("MCTS", 1, true);
-//     const agent2 = agents.getAgent("random", 2, false);
+    const agent1 = agents.getAgent("MCTS", 1, true);
+    const agent2 = agents.getAgent("random", 2, false);
 
-//     agent1Wins = 0
-//     agent2Wins = 0
-//     draws = 0
+    agent1Wins = 0
+    agent2Wins = 0
+    draws = 0
 
-//     const roundsToPlay = 5
+    const roundsToPlay = 5
 
-//     for (let i = 0; i < roundsToPlay; i++){
+    for (let i = 0; i < roundsToPlay; i++){
 
-//         var game = require('./GameRunner');
+        var game = require('./GameRunner');
         
-//         const winner = game.runGame(agent1, agent2, false);
+        const winner = game.runGame(agent1, agent2, false);
 
-//         if (winner != null) {
-//             result = "Player " + winner.id + " Wins";
-//             if (winner.id === 1) {
-//                 agent1Wins += 1
-//             }
-//             else {
-//                 agent2Wins += 1
-//             }
-//         }
+        if (winner != null) {
+            result = "Player " + winner.id + " Wins";
+            if (winner.id === 1) {
+                agent1Wins += 1
+            }
+            else {
+                agent2Wins += 1
+            }
+        }
 
-//         else {
-//             result = "Draw";
-//             draws += 1
-//         }
+        else {
+            result = "Draw";
+            draws += 1
+        }
         
-//         console.log(result);
-//     }
+        console.log(result);
+    }
 
-//     const gamesPlayed = agent1Wins + agent2Wins + draws
-//     const roundingDecimals = 2
+    const gamesPlayed = agent1Wins + agent2Wins + draws
+    const roundingDecimals = 2
 
-//     const round = Math.pow(10, roundingDecimals)
+    const round = Math.pow(10, roundingDecimals)
 
-//     console.log("\nGames Played  :  " + gamesPlayed)
-//     console.log("Agent " + agent1.id + "       :  " + agent1Wins + " (" + Math.round((100 * agent1Wins / gamesPlayed + Number.EPSILON) * round) / round + " %)")
-//     console.log("Agent " + agent2.id + "       :  " + agent2Wins + " (" + Math.round((100 * agent2Wins / gamesPlayed + Number.EPSILON) * round) / round + " %)")
-//     console.log("Draws         :  " + draws + " (" + Math.round((100 * draws / gamesPlayed + Number.EPSILON) * round) / round + " %)")
-//     console.log("")
+    console.log("\nGames Played  :  " + gamesPlayed)
+    console.log("Agent " + agent1.id + "       :  " + agent1Wins + " (" + Math.round((100 * agent1Wins / gamesPlayed + Number.EPSILON) * round) / round + " %)")
+    console.log("Agent " + agent2.id + "       :  " + agent2Wins + " (" + Math.round((100 * agent2Wins / gamesPlayed + Number.EPSILON) * round) / round + " %)")
+    console.log("Draws         :  " + draws + " (" + Math.round((100 * draws / gamesPlayed + Number.EPSILON) * round) / round + " %)")
+    console.log("")
 
-// }
+}
 
 // Piece
 
@@ -204,8 +219,7 @@ function computerMove(board, moves) {
 
     nextMove = agent2.selectMove(board, moves)
     game.move(nextMove)
-    board.position(game.fen())
-
+    // board.position(game.fen())
 }
 
 var gameActive = false
