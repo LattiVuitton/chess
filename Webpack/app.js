@@ -1,80 +1,212 @@
 // const printHello = require('./print-hello');
+const BOARD_WIDTH = 8;
 
-board = Chessboard('myBoard', "start")
+var board = null
+
+const chess = require('chess.js')
+var game = new chess.Chess()
+
+
+function onDragStart (source, piece, position, orientation) {
+    // do not pick up pieces if the game is over
+    if (game.isGameOver()) return false
+  
+    // only pick up pieces for White
+    if (piece.search(/^b/) !== -1) return false
+  }
+  
+  function makeRandomMove () {
+    var possibleMoves = game.moves()
+  
+    // game over
+    if (possibleMoves.length === 0) return
+  
+    var randomIdx = Math.floor(Math.random() * possibleMoves.length)
+    game.move(possibleMoves[randomIdx])
+    board.position(game.fen())
+  }
+  
+function onDrop(source, target) {
+      
+    var promoting = false;
+    var newMove = null;
+
+    // Checking if move is a promotion
+    firstLetter = target.split("")[1];
+    if (firstLetter === BOARD_WIDTH.toString()) {
+        piece = game.get(source);
+        if (piece.type === 'p') {
+            promoting = true;
+            newMove = game.move({
+                from: source,
+                to: target,
+                promotion: 'q'
+            })
+        }
+    }
+
+    if (!promoting) {
+        newMove = game.move({
+            from: source,
+            to: target
+          })
+    }
+
+  
+    // illegal move
+    if (newMove === null) {
+        return 'snapback'
+      }
+      
+    else {
+
+        // Check for end of game
+        if (game.isGameOver()) {
+            console.log("Game over")
+        }
+
+        else {
+            // Move using active agent
+            window.setTimeout(computerMove(board, game.moves()), 250)
+        }
+    }
+
+  }
+  
+  // update the board position after the piece snap
+  // for castling, en passant, pawn promotion
+  function onSnapEnd () {
+    board.position(game.fen())
+  }
+  
+  var config = {
+    draggable: true,
+    position: 'start',
+    onDragStart: onDragStart,
+    onDrop: onDrop,
+    onSnapEnd: onSnapEnd
+  }
+
+board = Chessboard('myBoard', config)
+
+var WorB = true;
 
 ////
 
 var agents = require('./Agents');
 
 var simulateButton = document.getElementById("CompVComp");
-var startButton = document.getElementById("startButton");
+var colorButton = document.getElementById("colorButton");
 
 simulateButton.addEventListener("click", function () {
     simulateGame()
 }, false);
 
-startButton.addEventListener("click", function () {
-    playGame(true)
+colorButton.addEventListener("click", function () {
+    swapColor()
 }, false);
 
-function simulateGame() {
-        
-    const agent1 = agents.getAgent("MCTS", 1, true);
-    const agent2 = agents.getAgent("random", 2, false);
-
-    agent1Wins = 0
-    agent2Wins = 0
-    draws = 0
-
-    const roundsToPlay = 5
-
-    for (let i = 0; i < roundsToPlay; i++){
-
-        var game = require('./GameRunner');
-        
-        const winner = game.runGame(agent1, agent2, false);
-
-        if (winner != null) {
-            result = "Player " + winner.id + " Wins";
-            if (winner.id === 1) {
-                agent1Wins += 1
-            }
-            else {
-                agent2Wins += 1
-            }
-        }
-
-        else {
-            result = "Draw";
-            draws += 1
-        }
-        
-        console.log(result);
+function swapColor() {
+    if (gameActive) {
+        return
     }
-
-    const gamesPlayed = agent1Wins + agent2Wins + draws
-    const roundingDecimals = 2
-
-    const round = Math.pow(10, roundingDecimals)
-
-    console.log("\nGames Played  :  " + gamesPlayed)
-    console.log("Agent " + agent1.id + "       :  " + agent1Wins + " (" + Math.round((100 * agent1Wins / gamesPlayed + Number.EPSILON) * round) / round + " %)")
-    console.log("Agent " + agent2.id + "       :  " + agent2Wins + " (" + Math.round((100 * agent2Wins / gamesPlayed + Number.EPSILON) * round) / round + " %)")
-    console.log("Draws         :  " + draws + " (" + Math.round((100 * draws / gamesPlayed + Number.EPSILON) * round) / round + " %)")
-    console.log("")
-
-}
-
-function playGame(WorB) {
-    console.log("Starting game");
-
-    if (WorB) {
-        const agent1 = agents.getAgent("MCTS", 1, true);
-        const agent2 = agents.getAgent("random", 2, false);
+    WorB = !WorB;
+    var color = "White"
+    if (!WorB) {
+        var config = {
+            draggable: true,
+            position: 'start',
+            orientation: 'black',
+            onDragStart: onDragStart,
+            onDrop: onDrop,
+            onSnapEnd: onSnapEnd
+          }
+        
+        board = Chessboard('myBoard', config)
+        color = "Black"
+        gameActive = true
+        window.setTimeout(computerMove(board, game.moves()), 250)
     }
-
     else {
+        var config = {
+            draggable: true,
+            position: 'start',
+            onDragStart: onDragStart,
+            onDrop: onDrop,
+            onSnapEnd: onSnapEnd
+          }
         
+        board = Chessboard('myBoard', config)
     }
+    document.getElementById("playerColor").innerHTML="Playing as: " + color
+}
+
+// function changeAgent(agentName) {
+//     if (!gameActive) {
+        
+//     }
+// }
+
+// function simulateGame() {
+        
+//     const agent1 = agents.getAgent("MCTS", 1, true);
+//     const agent2 = agents.getAgent("random", 2, false);
+
+//     agent1Wins = 0
+//     agent2Wins = 0
+//     draws = 0
+
+//     const roundsToPlay = 5
+
+//     for (let i = 0; i < roundsToPlay; i++){
+
+//         var game = require('./GameRunner');
+        
+//         const winner = game.runGame(agent1, agent2, false);
+
+//         if (winner != null) {
+//             result = "Player " + winner.id + " Wins";
+//             if (winner.id === 1) {
+//                 agent1Wins += 1
+//             }
+//             else {
+//                 agent2Wins += 1
+//             }
+//         }
+
+//         else {
+//             result = "Draw";
+//             draws += 1
+//         }
+        
+//         console.log(result);
+//     }
+
+//     const gamesPlayed = agent1Wins + agent2Wins + draws
+//     const roundingDecimals = 2
+
+//     const round = Math.pow(10, roundingDecimals)
+
+//     console.log("\nGames Played  :  " + gamesPlayed)
+//     console.log("Agent " + agent1.id + "       :  " + agent1Wins + " (" + Math.round((100 * agent1Wins / gamesPlayed + Number.EPSILON) * round) / round + " %)")
+//     console.log("Agent " + agent2.id + "       :  " + agent2Wins + " (" + Math.round((100 * agent2Wins / gamesPlayed + Number.EPSILON) * round) / round + " %)")
+//     console.log("Draws         :  " + draws + " (" + Math.round((100 * draws / gamesPlayed + Number.EPSILON) * round) / round + " %)")
+//     console.log("")
+
+// }
+
+// Piece
+
+function computerMove(board, moves) {
+    console.log("Computer moving")
+
+    const agent2 = agents.getAgent("random", 1, true);
+
+    nextMove = agent2.selectMove(board, moves)
+    game.move(nextMove)
+    board.position(game.fen())
 
 }
+
+var gameActive = false
+var waitingForPlayer = false;
