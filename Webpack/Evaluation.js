@@ -43,6 +43,6 @@ exports.pieceValue = function countPieces(game, myColor) {
             }
         }
     }
-
+    // console.log(myScore + " <_> " + oppScore)
     return (myScore + Number.EPSILON) / (myScore + oppScore + Number.EPSILON)
 }
