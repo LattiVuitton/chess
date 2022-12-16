@@ -29,18 +29,18 @@ function onDragStart(source, piece, position, orientation) {
     if (WorB && (piece.search(/^b/) !== -1)) return false
     if (!WorB && (piece.search(/^w/) !== -1)) return false
 
-  }
+}
   
-  function makeRandomMove () {
-    var possibleMoves = game.moves()
-  
-    // game over
-    if (possibleMoves.length === 0) return
-  
-    var randomIdx = Math.floor(Math.random() * possibleMoves.length)
-    game.move(possibleMoves[randomIdx])
-    board.position(game.fen())
-  }
+function makeRandomMove () {
+var possibleMoves = game.moves()
+
+// game over
+if (possibleMoves.length === 0) return
+
+var randomIdx = Math.floor(Math.random() * possibleMoves.length)
+game.move(possibleMoves[randomIdx])
+board.position(game.fen())
+}
   
 function onDrop(source, target) {
       
@@ -85,32 +85,29 @@ function onDrop(source, target) {
 
         else {
             // Move using active agent
+            onSnapEnd()
             window.setTimeout(computerMove(), 250)
         }
     }
+}
 
-  }
-  
-  // update the board position after the piece snap
-  // for castling, en passant, pawn promotion
-  function onSnapEnd () {
+// update the board position after the piece snap
+// for castling, en passant, pawn promotion
+function onSnapEnd() {
     board.position(game.fen())
-  }
+}
   
-  var config = {
-    draggable: true,
-    position: 'start',
-    onDragStart: onDragStart,
-    onDrop: onDrop,
-    onSnapEnd: onSnapEnd
-  }
+var config = {
+draggable: true,
+position: 'start',
+onDragStart: onDragStart,
+onDrop: onDrop,
+onSnapEnd: onSnapEnd
+}
 
 board = Chessboard('myBoard', config)
 
 var WorB = true;
-
-////
-
 
 var simulateButton = document.getElementById("CompVComp");
 var colorButton = document.getElementById("colorButton");
@@ -165,7 +162,7 @@ function swapColor() {
 
     opponent.WorB = WorB;
     WorB = !WorB;
-    
+
     var color = "White"
     if (!WorB) {
         var config = {
@@ -259,8 +256,7 @@ function computerMove() {
     }
     nextMove = opponent.selectMove(game, moves)
     game.move(nextMove)
-    // board.position(game.fen())
+    board.position(game.fen())
 }
 
 var gameActive = false
-var waitingForPlayer = false;
