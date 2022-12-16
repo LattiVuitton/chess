@@ -119,22 +119,48 @@ class MCTSAgent extends Agent{
 
         // If first move
         if (this.turn <= 2) {
-            var rootNode = nodes.getNewNode(board, null, board.moves())
+            var rootNode = nodes.getNewNode(board, null, board.moves({ verbose: true }), this.WorB, null)
         }
 
         else {
-            var rootNode = nodes.getNewNode(board, null)
+            var rootNode = nodes.getNewNode(board, null, board.moves({ verbose: true }), this.WorB, null)
         }
 
         this.turn++
 
-        var activeNode = rootNode
-        while (activeNode.fullyExplored()) {
-            activeNode = activeNode.getNext()
+        // Time loop
+        const timeLimit = 1
+        const timeLimitSeconds = timeLimit * 1000
+        const start = Date.now()
+        var count = 0
+        while (Date.now() - start < timeLimitSeconds) {
+            count++
+            var path = [rootNode]
+            var activeNode = rootNode
+            while (activeNode.fullyExplored()) {
+                activeNode = activeNode.getNext()
+                path.push(activeNode)
+            }
+            console.log(path)
+            activeNode.expand()
         }
 
-        const move = moves[Math.floor(Math.random() * moves.length)]
-        return move
+        console.log("Count: " + count)
+
+        var bestMove = null
+        var bestQ = 1
+        for (var move in rootNode.children){
+            var child = rootNode.children[move];
+            if (child.qValue < bestQ) {
+                bestQ = child.qValue;
+                bestMove = child.action;
+            }
+        }
+        return bestMove
+
+        // const move = moves[Math.floor(Math.random() * moves.length)]
+        // console.log(move)
+        // return move
     }
 }
 
