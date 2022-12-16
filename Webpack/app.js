@@ -1,4 +1,8 @@
 // const printHello = require('./print-hello');
+var agents = require('./Agents');
+
+var opponent = agents.getAgent("random", 0, true);
+
 const BOARD_WIDTH = 8;
 
 var board = null
@@ -6,6 +10,16 @@ var board = null
 const chess = require('chess.js')
 var game = new chess.Chess()
 
+var agentID = 0
+
+function getID() {
+    agentID++
+    return agentID
+}
+
+function setOpponent(style) {
+    opponent = agents.getAgent(style, getID, !WorB)
+}
 
 function onDragStart(source, piece, position, orientation) {
 
@@ -71,7 +85,7 @@ function onDrop(source, target) {
 
         else {
             // Move using active agent
-            window.setTimeout(computerMove(board, game.moves()), 250)
+            window.setTimeout(computerMove(), 250)
         }
     }
 
@@ -97,7 +111,6 @@ var WorB = true;
 
 ////
 
-var agents = require('./Agents');
 
 var simulateButton = document.getElementById("CompVComp");
 var colorButton = document.getElementById("colorButton");
@@ -111,20 +124,48 @@ colorButton.addEventListener("click", function () {
 }, false);
 
 // Agent listeners --------------------------- start
-colorButton.addEventListener("click", function () {
-    swapColor()
+var randomAgent = document.getElementById("randomAgent");
+var heuristicAgent = document.getElementById("heuristicAgent");
+var MCTSAgent = document.getElementById("MCTSAgent");
+
+randomAgent.addEventListener("click", function () {
+    changeAgent("random")
 }, false);
 
+heuristicAgent.addEventListener("click", function () {
+    changeAgent("heuristic")
+}, false);
+
+MCTSAgent.addEventListener("click", function () {
+    changeAgent("MCTS")
+}, false);
+
+function changeAgent(agentName) {
+    if (!gameActive) {
+        if (agentName === "random") {
+            setOpponent("random")
+        }
+
+        else if (agentName === "heuristic") {
+            setOpponent("alwaysTake")
+        }
+
+        else if (agentName === "MCTS") {
+            setOpponent("MCTS")
+        }
+    }
+}
+
 // Agent listeners --------------------------- end
-
-
-
 
 function swapColor() {
     if (gameActive) {
         return
     }
+
+    opponent.WorB = WorB;
     WorB = !WorB;
+    
     var color = "White"
     if (!WorB) {
         var config = {
@@ -139,7 +180,7 @@ function swapColor() {
         board = Chessboard('myBoard', config)
         color = "Black"
         gameActive = true
-        window.setTimeout(computerMove(board, game.moves()), 250)
+        window.setTimeout(computerMove(), 250)
         onSnapEnd()
     }
     else {
@@ -155,12 +196,6 @@ function swapColor() {
     }
     document.getElementById("playerColor").innerHTML="Playing as: " + color
 }
-
-// function changeAgent(agentName) {
-//     if (!gameActive) {
-        
-//     }
-// }
 
 function simulateGame() {
         
@@ -212,12 +247,17 @@ function simulateGame() {
 
 // Piece
 
-function computerMove(board, moves) {
+function computerMove() {
     console.log("Computer moving")
 
-    const agent2 = agents.getAgent("random", 1, true);
-
-    nextMove = agent2.selectMove(board, moves)
+    moves = null
+    if (opponent.requiresVerbose) {
+        moves = game.moves({ verbose: true })
+    }
+    else {
+        moves = game.moves()
+    }
+    nextMove = opponent.selectMove(game, moves)
     game.move(nextMove)
     // board.position(game.fen())
 }
