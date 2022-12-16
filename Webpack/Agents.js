@@ -59,6 +59,7 @@ class AlwaysTake extends Agent{
             var clonedBoard = new Chess(board.fen())
             clonedBoard.move(move)
             if (clonedBoard.isCheck()) {
+
                 return move
             }
         }
@@ -115,7 +116,23 @@ class MCTSAgent extends Agent{
     }
 
     selectMove(board, moves) {
-        var rootNode = nodes.getNewNode(board, null)
+
+        // If first move
+        if (this.turn <= 2) {
+            var rootNode = nodes.getNewNode(board, null, board.moves())
+        }
+
+        else {
+            var rootNode = nodes.getNewNode(board, null)
+        }
+
+        this.turn++
+
+        var activeNode = rootNode
+        while (activeNode.fullyExplored()) {
+            activeNode = activeNode.getNext()
+        }
+
         const move = moves[Math.floor(Math.random() * moves.length)]
         return move
     }
@@ -127,7 +144,6 @@ var agentTypesDict = {
     "greedy": GreedyAgent,
     "MCTS": MCTSAgent
 };
-
 
 
 exports.getAgent = function getAgentType(agentType, id, WorB) {
