@@ -14,7 +14,7 @@ class Node {
         this.board = board;
         this.parent = parent;
         this.moves = moves;
-        this.children = {};
+        this.childrenDict = new Object();
         this.WorB = WorB;
         this.action = action
         var color = 'b';
@@ -25,9 +25,9 @@ class Node {
     }
 
     fullyExplored() {
-        console.log(this.children)
-        console.log(Object.keys(this.children).length)
-        if (Object.keys(this.children).length === this.moves.length) return true
+        // console.log("Children: " + this.children)
+        // console.log("Moves: " + this.moves)
+        if (Object.keys(this.childrenDict).length === this.moves.length) return true
         return false
     }
 
@@ -55,7 +55,7 @@ class Node {
     }
 
     expand() {
-        // console.log("Expanding node")
+        console.log("Expanding: " + this.id)
         for (let i = 0; i < this.moves.length; i++){
             const givenMove = this.moves[i]
             var nextState = new Chess(this.board.fen())
@@ -63,14 +63,13 @@ class Node {
             var nextMoves = nextState.moves({ verbose: true })
             var nextNode = new Node(nextState, this, nextMoves, !this.WorB, givenMove)
 
-            for (var key in this.children) {
-                console.log(key + " <KEY")
+            console.log("\n\nChildren 1: " + this.children)
+            if (!this.children[givenMove]) {
+                this.children[givenMove] = 0
+                console.log("WERC")
             }
-
-            console.log(givenMove)
-            console.log(Object.keys(this.children).length + "<--")
             this.children[givenMove] = nextNode
-            console.log(Object.keys(this.children).length + "<---")
+            console.log("Children 2: " + this.children)
 
         }
     }
