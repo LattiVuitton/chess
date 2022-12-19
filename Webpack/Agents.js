@@ -134,18 +134,22 @@ class MCTSAgent extends Agent{
         const start = Date.now()
         var count = 0
         while (Date.now() - start < timeLimitSeconds) {
+
             count++
             var path = [rootNode]
             var activeNode = rootNode
+            
+            // Selection
             while (activeNode.fullyExplored()) {
+                console.log(path)
                 activeNode = activeNode.getNext()
                 path.push(activeNode)
             }
-            console.log(path)
+
+            // Expansion
             activeNode.expand()
         }
 
-        console.log("Count: " + count)
 
         var bestMove = null
         var bestQ = 1
@@ -156,6 +160,7 @@ class MCTSAgent extends Agent{
                 bestMove = child.action;
             }
         }
+
         return bestMove
 
         // const move = moves[Math.floor(Math.random() * moves.length)]
