@@ -7,6 +7,8 @@ const BOARD_WIDTH = 8;
 
 var board = null
 
+var waitingForComputer = false;
+
 const chess = require('chess.js')
 var game = new chess.Chess()
 
@@ -85,8 +87,8 @@ function onDrop(source, target) {
 
         else {
             // Move using active agent
-            onSnapEnd()
-            window.setTimeout(computerMove(), 250)
+            // onSnapEnd()
+            waitingForComputer = true
         }
     }
 }
@@ -257,6 +259,35 @@ function computerMove() {
     nextMove = opponent.selectMove(game, moves)
     game.move(nextMove)
     board.position(game.fen())
+}
+
+var timeCount = 0
+var newTime = 0
+startDate = Date.now()
+window.onload = function() {            
+    function test() {
+        newTime = ((Date.now() - startDate) / 1000)
+        if (newTime > timeCount) {
+            // console.log("Seconds since load: " + timeCount)
+            timeCount++
+        }
+        update()
+    }
+    setInterval(test, 1);
+}
+
+var marker = 0
+function update() {
+    if (waitingForComputer) {
+        if (marker < 10) {
+            marker++
+        }
+        else {
+            window.setTimeout(computerMove(), 250)
+            waitingForComputer = false;
+            marker = 0
+        }
+    }
 }
 
 var gameActive = false
