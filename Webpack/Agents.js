@@ -129,7 +129,7 @@ class MCTSAgent extends Agent{
         this.turn++
 
         // Time loop
-        const timeLimit = 1
+        const timeLimit = 5
         const timeLimitSeconds = timeLimit * 1000
         const start = Date.now()
         var count = 0
@@ -140,11 +140,13 @@ class MCTSAgent extends Agent{
             var activeNode = rootNode
             
             // Selection
+            // console.log("\n\nSelection")
             while (activeNode.fullyExplored()) {
-                console.log(path)
                 activeNode = activeNode.getNext()
                 path.push(activeNode)
             }
+
+            console.log(path.length)
 
             // Expansion
             activeNode.expand()
@@ -153,19 +155,19 @@ class MCTSAgent extends Agent{
 
         var bestMove = null
         var bestQ = 1
-        for (var move in rootNode.children){
-            var child = rootNode.children[move];
-            if (child.qValue < bestQ) {
-                bestQ = child.qValue;
-                bestMove = child.action;
-            }
-        }
 
-        return bestMove
+        // for (var move in rootNode.children){
+        //     var child = rootNode.children[move];
+        //     if (child.qValue < bestQ) {
+        //         bestQ = child.qValue;
+        //         bestMove = child.action;
+        //     }
+        // }
 
-        // const move = moves[Math.floor(Math.random() * moves.length)]
-        // console.log(move)
-        // return move
+        // return bestMove
+
+        const move = moves[Math.floor(Math.random() * moves.length)]
+        return move
     }
 }
 
