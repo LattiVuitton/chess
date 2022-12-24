@@ -107,6 +107,9 @@ class MCTSAgent extends Agent{
     constructor(id, WorB) {
         super(id, WorB)
         this.requiresVerbose = true
+        this.rootNode = null
+        this.rootID = -1
+        this.allExpandedNodes = []
         if (WorB) {
             this.turn = 1
         }
@@ -115,17 +118,43 @@ class MCTSAgent extends Agent{
         }
     }
 
-    improveTree(board, moves)
+    nodeVisited(nodeID) {
+        for (let i = 0; i < this.allExpandedNodes.length; i++){
+            if (nodeID === this.allExpandedNodes[i]) {
+                return true
+            }
+        }
+        return false
+    }
+
+    improveTree() {
+
+        console.log("Improving")
+
+        var path = [this.rootNode]
+        var activeNode = this.rootNode
+        
+        // Selection
+        while (activeNode.fullyExplored()) {
+            activeNode = activeNode.getNext()
+            path.push(activeNode)
+        }
+
+        console.log("Path Length: " + path.length)
+
+        // Expansion
+        activeNode.expand()
+    }
 
     selectMove(board, moves) {
 
         // If first move
         if (this.turn <= 2) {
-            var rootNode = nodes.getNewNode(board, null, board.moves({ verbose: true }), this.WorB, null)
+            this.rootNode = nodes.getNewNode(board, null, board.moves({ verbose: true }), this.WorB, null)
         }
 
         else {
-            var rootNode = nodes.getNewNode(board, null, board.moves({ verbose: true }), this.WorB, null)
+            this.rootNode = nodes.getNewNode(board, null, board.moves({ verbose: true }), this.WorB, null)
         }
 
         this.turn++
@@ -134,27 +163,9 @@ class MCTSAgent extends Agent{
         const timeLimit = 1
         const timeLimitSeconds = timeLimit * 1000
         const start = Date.now()
-        var count = 0
         while (Date.now() - start < timeLimitSeconds) {
-
-            count++
-            var path = [rootNode]
-            var activeNode = rootNode
-
-            var counting = 1
-            
-            // Selection
-            while (activeNode.fullyExplored()) {
-                activeNode = activeNode.getNext()
-                path.push(activeNode)
-            }
-
-            console.log("Path Length: " + path.length + " <> " + count)
-
-            // Expansion
-            activeNode.expand()
+            this.improveTree()
         }
-
 
         var bestMove = null
         var bestQ = 1
