@@ -23,7 +23,7 @@ class RandomAgent extends Agent{
     }
 
     selectMove(board, moves) {
-        const move = moves[Math.floor(Math.random() * moves.length)]
+        const move = null //moves[Math.floor(Math.random() * moves.length)]
         return move
     }
 }
@@ -112,6 +112,11 @@ class MCTSAgent extends Agent{
         this.rootID = -1
         this.allExpandedNodes = []
         this.requiresLastPlayerMove = true;
+
+        // Indicates what the opponent (human) is faced with at close
+        // Used to retrieve tree from previous state
+        // Value changes at the end of each move
+        this.playerAvailableMoves = null;
         if (WorB) {
             this.turn = 1
         }
@@ -180,25 +185,27 @@ class MCTSAgent extends Agent{
             this.improveTree()
         }
 
-        console.log(this.allExpandedNodes)
+        var bestMove = null //this.rootNode.moveObjects[0]
+        var bestQ = -1
 
-        var bestMove = null
-        var bestQ = 1
+        // For clean code
+        var dictLen = Object.keys(this.rootNode.moveObjects).length
 
-        console.log("wer")
-        for (var move in rootNode.children){
-            var child = rootNode.children[move];
-            console.log(move + " <--------------")
-            // if (child.qValue < bestQ) {
-            //     bestQ = child.qValue;
-            //     bestMove = child.action;
-            // }
+        for (let i = 0; i < dictLen; i++) {
+            var moveObject = this.rootNode.moveObjects[i]
+
+            var opponentNode = this.rootNode.childrenDict[moveObject.id]
+
+            if (opponentNode.qValue > bestQ) {
+                bestMove = moveObject.move;
+                bestQ = opponentNode.qValue;
+            }
         }
 
-        // return bestMove
+        // Clear moves available to opponent (human)
+        this.playerAvailableMoves = []
 
-        const move = moves[Math.floor(Math.random() * moves.length)]
-        return move
+        return bestMove
     }
 }
 
