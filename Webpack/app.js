@@ -45,7 +45,10 @@ if (possibleMoves.length === 0) return
 var randomIdx = Math.floor(Math.random() * possibleMoves.length)
 game.move(possibleMoves[randomIdx])
 }
-  
+
+// Storing the most recent player move
+// Only needed for MCTS agent
+var lastPlayerMove = null
 function onDrop(source, target) {
       
     gameActive = true
@@ -91,6 +94,8 @@ function onDrop(source, target) {
             // Move using active agent
             waitingForComputer = true
         }
+
+        lastPlayerMove = newMove
     }
 
     boardReady = false;
@@ -260,15 +265,33 @@ function updateBoard() {
 
 function computerMove() {
 
+    // Reset
     moves = null
+
+    // Verbose means chess.js 'move' object
     if (opponent.requiresVerbose) {
         moves = game.moves({ verbose: true })
     }
+
+    // Otherwise, plain move description acceptable
     else {
         moves = game.moves()
     }
+
+    // If player move must be updated
+    if (opponent.requiresLastPlayerMove) {
+
+        // Used for efficient root node setting
+        opponent.setRootNode(lastPlayerMove);
+    }
+
+    // Get agent move
     nextMove = opponent.selectMove(game, moves)
+
+    // Move in internal game
     game.move(nextMove)
+
+    // Move on front end board
     window.setTimeout(updateBoard, TIMEOUT)
 }
 
