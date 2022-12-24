@@ -55,8 +55,8 @@ class Node {
         }
 
         // Random move
-        // var givenMoveObject = this.moveObjects[Math.floor(Math.random() * this.moveObjects.length)]
-        var givenMoveObject = this.moveObjects[0]
+        var givenMoveObject = this.moveObjects[Math.floor(Math.random() * this.moveObjects.length)]
+        // var givenMoveObject = this.moveObjects[0]
 
 
         var nextNode = this.childrenDict[givenMoveObject.id]
