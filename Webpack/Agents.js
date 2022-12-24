@@ -143,7 +143,7 @@ class MCTSAgent extends Agent{
 
     improveTree() {
 
-        console.log("Improving tree")
+        // console.log("Improving tree")
 
         var path = [this.rootNode]
         var activeNode = this.rootNode
@@ -188,13 +188,36 @@ class MCTSAgent extends Agent{
 
         // console.log("Path Length: " + path.length)
 
+        var foundValue = 0
+
         // Expansion
         if (expansionNeeded) {
-            activeNode.expand()
+            foundValue = activeNode.expand(this.WorB)
+        }
+
+        else if (foundDraw) {
+            foundValue = 0.5
+        }
+
+        else if (foundWin) {
+            foundValue = 1
+        }
+
+        else if (foundLoss) {
+            foundValue = 0
+        }
+
+        console.log("Found Value: " + foundValue)
+
+        // Backprop
+        for (let j = path.length - 1; j >= 0; j--) {
+            // console.log("NODE: " + path[j].id)
         }
     }
 
     selectMove(board, moves) {
+
+        console.log("Selecting\n")
 
         this.allExpandedNodes = []
 
