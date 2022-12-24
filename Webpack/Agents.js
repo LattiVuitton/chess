@@ -115,6 +115,8 @@ class MCTSAgent extends Agent{
         }
     }
 
+    improveTree(board, moves)
+
     selectMove(board, moves) {
 
         // If first move
@@ -129,7 +131,7 @@ class MCTSAgent extends Agent{
         this.turn++
 
         // Time loop
-        const timeLimit = 5
+        const timeLimit = 1
         const timeLimitSeconds = timeLimit * 1000
         const start = Date.now()
         var count = 0
@@ -138,15 +140,16 @@ class MCTSAgent extends Agent{
             count++
             var path = [rootNode]
             var activeNode = rootNode
+
+            var counting = 1
             
             // Selection
-            // console.log("\n\nSelection")
             while (activeNode.fullyExplored()) {
                 activeNode = activeNode.getNext()
                 path.push(activeNode)
             }
 
-            console.log(path.length)
+            console.log("Path Length: " + path.length + " <> " + count)
 
             // Expansion
             activeNode.expand()
