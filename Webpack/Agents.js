@@ -7,6 +7,7 @@ class Agent{
         this.id = id;
         this.WorB = WorB
         this.requiresVerbose = true
+        this.requiresLastPlayerMove = false;
     }
 
     // moves can either be only names, or full move object array
@@ -110,12 +111,17 @@ class MCTSAgent extends Agent{
         this.rootNode = null
         this.rootID = -1
         this.allExpandedNodes = []
+        this.requiresLastPlayerMove = true;
         if (WorB) {
             this.turn = 1
         }
         else {
             this.turn = 2
         }
+    }
+
+    setRootNode(lastPlayerMove) {
+        console.log(lastPlayerMove + " <--")
     }
 
     nodeVisited(nodeID) {
@@ -179,13 +185,15 @@ class MCTSAgent extends Agent{
         var bestMove = null
         var bestQ = 1
 
-        // for (var move in rootNode.children){
-        //     var child = rootNode.children[move];
-        //     if (child.qValue < bestQ) {
-        //         bestQ = child.qValue;
-        //         bestMove = child.action;
-        //     }
-        // }
+        console.log("wer")
+        for (var move in rootNode.children){
+            var child = rootNode.children[move];
+            console.log(move + " <--------------")
+            // if (child.qValue < bestQ) {
+            //     bestQ = child.qValue;
+            //     bestMove = child.action;
+            // }
+        }
 
         // return bestMove
 
