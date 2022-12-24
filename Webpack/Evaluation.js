@@ -27,7 +27,6 @@ exports.pieceValue = function countPieces(game, myColor) {
     var oppScore = 0
 
     var tilesList = []
-
     for (let i = 0; i < letters.length; i++){
         for (let j = 1; j < letters.length + 1; j++){
             tile = letters[i] + j
