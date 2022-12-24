@@ -30,15 +30,20 @@ function artificialCost(cost) {
 
 }
 
-exports.pieceValue = function countPieces(game, myColor) {
+exports.pieceValue = function countPieces(game, playerColor) {
     
     var myScore = 0
     var oppScore = 0
 
+    myColor = 'b'
+    if (playerColor === 'b') {
+        myColor = 'w'
+    }
+
     var tilesList = []
     for (let i = 0; i < letters.length; i++){
         for (let j = 1; j < letters.length + 1; j++){
-            artificialCost(1000)
+            // artificialCost(1000)
             tile = letters[i] + j
             tilesList.push(tile)
             piece = game.get(tile)
@@ -52,6 +57,5 @@ exports.pieceValue = function countPieces(game, myColor) {
             }
         }
     }
-    // console.log(myScore + " <_> " + oppScore)
     return (myScore + Number.EPSILON) / (myScore + oppScore + Number.EPSILON)
 }
