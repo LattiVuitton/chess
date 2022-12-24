@@ -207,11 +207,11 @@ class MCTSAgent extends Agent{
             foundValue = 0
         }
 
-        console.log("Found Value: " + foundValue)
-
         // Backprop
         for (let j = path.length - 1; j >= 0; j--) {
-            // console.log("NODE: " + path[j].id)
+            var rat = path[j].qValue
+            path[j].qValue = ((path[j].qValue * path[j].visits) + foundValue) / (path[j].visits + 1)
+            path[j].visits++
         }
     }
 
