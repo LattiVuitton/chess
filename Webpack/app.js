@@ -1,6 +1,8 @@
 // const printHello = require('./print-hello');
 var agents = require('./Agents');
 
+const TIMEOUT = 0;
+
 var opponent = agents.getAgent("random", 0, true);
 
 const BOARD_WIDTH = 8;
@@ -8,6 +10,7 @@ const BOARD_WIDTH = 8;
 var board = null
 
 var waitingForComputer = false;
+var boardReady = false;
 
 const chess = require('chess.js')
 var game = new chess.Chess()
@@ -41,7 +44,6 @@ if (possibleMoves.length === 0) return
 
 var randomIdx = Math.floor(Math.random() * possibleMoves.length)
 game.move(possibleMoves[randomIdx])
-board.position(game.fen())
 }
   
 function onDrop(source, target) {
@@ -87,24 +89,21 @@ function onDrop(source, target) {
 
         else {
             // Move using active agent
-            // onSnapEnd()
             waitingForComputer = true
         }
     }
+
+    boardReady = false;
+    window.setTimeout(updateBoard, TIMEOUT)
 }
 
-// update the board position after the piece snap
-// for castling, en passant, pawn promotion
-function onSnapEnd() {
-    board.position(game.fen())
-}
+
   
 var config = {
 draggable: true,
 position: 'start',
 onDragStart: onDragStart,
 onDrop: onDrop,
-onSnapEnd: onSnapEnd
 }
 
 board = Chessboard('myBoard', config)
@@ -141,6 +140,9 @@ MCTSAgent.addEventListener("click", function () {
 
 function changeAgent(agentName) {
     if (!gameActive) {
+
+        var foundAgent = true
+
         if (agentName === "random") {
             setOpponent("random")
         }
@@ -151,6 +153,14 @@ function changeAgent(agentName) {
 
         else if (agentName === "MCTS") {
             setOpponent("MCTS")
+        }
+        
+        else {
+            foundAgent = false
+        }
+
+        if (foundAgent) {
+            console.log("Changing agent to '" + agentName + "'")
         }
     }
 }
@@ -173,14 +183,13 @@ function swapColor() {
             orientation: 'black',
             onDragStart: onDragStart,
             onDrop: onDrop,
-            onSnapEnd: onSnapEnd
+            // onSnapEnd: onSnapEnd
           }
         
         board = Chessboard('myBoard', config)
         color = "Black"
         gameActive = true
         window.setTimeout(computerMove(), 250)
-        onSnapEnd()
     }
     else {
         var config = {
@@ -188,7 +197,7 @@ function swapColor() {
             position: 'start',
             onDragStart: onDragStart,
             onDrop: onDrop,
-            onSnapEnd: onSnapEnd
+            // onSnapEnd: onSnapEnd
           }
         
         board = Chessboard('myBoard', config)
@@ -198,7 +207,7 @@ function swapColor() {
 
 function simulateGame() {
         
-    const agent1 = agents.getAgent("MCTS", 1, true);
+    const agent1 = agents.getAgent("random", 1, true);
     const agent2 = agents.getAgent("random", 2, false);
 
     agent1Wins = 0
@@ -244,10 +253,12 @@ function simulateGame() {
 
 }
 
-// Piece
+function updateBoard() {
+    board.position(game.fen())
+    boardReady = true;
+}
 
 function computerMove() {
-    console.log("Computer moving")
 
     moves = null
     if (opponent.requiresVerbose) {
@@ -258,7 +269,7 @@ function computerMove() {
     }
     nextMove = opponent.selectMove(game, moves)
     game.move(nextMove)
-    board.position(game.fen())
+    window.setTimeout(updateBoard, TIMEOUT)
 }
 
 var timeCount = 0
@@ -268,7 +279,6 @@ window.onload = function() {
     function test() {
         newTime = ((Date.now() - startDate) / 1000)
         if (newTime > timeCount) {
-            // console.log("Seconds since load: " + timeCount)
             timeCount++
         }
         update()
@@ -283,9 +293,12 @@ function update() {
             marker++
         }
         else {
-            window.setTimeout(computerMove(), 250)
-            waitingForComputer = false;
-            marker = 0
+            if (boardReady) {
+                computerMove()
+                // window.setTimeout(computerMove(), 10000)
+                waitingForComputer = false;
+                marker = 0
+            }
         }
     }
 }
