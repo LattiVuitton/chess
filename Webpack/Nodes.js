@@ -23,6 +23,9 @@ class MoveObject {
 
 class Node {
     constructor(board, parent, moves, WorB, action) {
+
+        // Visits are only counted during backpropagation
+        this.visits = 1;
         this.id = getID();
         this.board = board;
         this.parent = parent;

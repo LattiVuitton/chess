@@ -23,7 +23,7 @@ class RandomAgent extends Agent{
     }
 
     selectMove(board, moves) {
-        const move = null //moves[Math.floor(Math.random() * moves.length)]
+        const move = moves[Math.floor(Math.random() * moves.length)]
         return move
     }
 }
@@ -209,15 +209,12 @@ class MCTSAgent extends Agent{
 
         // Backprop
         for (let j = path.length - 1; j >= 0; j--) {
-            var rat = path[j].qValue
             path[j].qValue = ((path[j].qValue * path[j].visits) + foundValue) / (path[j].visits + 1)
             path[j].visits++
         }
     }
 
     selectMove(board, moves) {
-
-        console.log("Selecting\n")
 
         this.allExpandedNodes = []
 
@@ -260,12 +257,13 @@ class MCTSAgent extends Agent{
 
         // For clean code
         var dictLen = Object.keys(this.rootNode.moveObjects).length
-        console.log(this.rootNode.id + " < root ID")
 
         for (let i = 0; i < dictLen; i++) {
             var moveObject = this.rootNode.moveObjects[i]
 
             var opponentNode = this.rootNode.childrenDict[moveObject.id]
+            console.log(moveObject.move.to + " <> " + opponentNode.qValue)
+
             if (opponentNode.qValue > bestQ) {
                 bestMove = moveObject.move;
                 bestQ = opponentNode.qValue;
@@ -287,6 +285,7 @@ class MCTSAgent extends Agent{
         this.playerBoardState = playerState;
         
         // Best move after Q-value analysis
+        console.log(bestQ)
         return bestMove
     }
 }
