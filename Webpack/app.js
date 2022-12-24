@@ -58,13 +58,13 @@ function onDrop(source, target) {
     var promoting = false;
     var newMove = null;
 
-    
     // Checking if move is a promotion
     firstLetter = target.split("")[1];
     if (firstLetter === BOARD_WIDTH.toString() || firstLetter === "1") {
         piece = game.get(source);
         if (piece.type === 'p') {
             promoting = true;
+            console.log("zara")
             newMove = game.move({
                 from: source,
                 to: target,
@@ -72,6 +72,7 @@ function onDrop(source, target) {
             })
         }
     }
+
 
     if (!promoting) {
         newMove = game.move({
@@ -99,6 +100,7 @@ function onDrop(source, target) {
 
     boardReady = false;
     canPickUp = false;
+
     window.setTimeout(updateBoard, TIMEOUT)
 }
 
@@ -214,7 +216,7 @@ function swapColor() {
 
 function simulateGame() {
         
-    const agent1 = agents.getAgent("random", 1, true);
+    const agent1 = agents.getAgent("MCTS", 1, true);
     const agent2 = agents.getAgent("random", 2, false);
 
     agent1Wins = 0
@@ -227,7 +229,7 @@ function simulateGame() {
 
         var game = require('./GameRunner');
         
-        const winner = game.runGame(agent1, agent2, false);
+        const winner = game.runGame(agent1, agent2, true);
 
         if (winner != null) {
             result = "Player " + winner.id + " Wins";
