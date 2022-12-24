@@ -143,18 +143,37 @@ class MCTSAgent extends Agent{
 
     improveTree() {
 
-        // console.log("Improving tree")
+        console.log("Improving tree")
 
         var path = [this.rootNode]
         var activeNode = this.rootNode
 
-        var improvementPossible = true;
+        var expansionNeeded = true;
+        var foundWin = false;
+        var foundLoss = false;
+        var foundDraw = false;
         
         // Selection
         while (activeNode.fullyExplored()) {
 
-            if (activeNode.hasNoMoves() || path.length > this.MAX_PATH_LENGTH) {
-                improvementPossible = false;
+            if (activeNode.hasNoMoves()) {
+                expansionNeeded = false;
+                if (activeNode.board.isCheckmate()) {
+                    if (activeNode.color === this.WorB) {
+                        foundWin = true;
+                    }
+                    else {
+                        foundLoss = true;
+                    }
+                }
+                else {
+                    foundDraw = true  
+                }
+                break;
+            }
+
+            if (path.length > this.MAX_PATH_LENGTH) {
+                expansionNeeded = false;
                 break;
             }
 
@@ -170,7 +189,7 @@ class MCTSAgent extends Agent{
         // console.log("Path Length: " + path.length)
 
         // Expansion
-        if (improvementPossible) {
+        if (expansionNeeded) {
             activeNode.expand()
         }
     }
