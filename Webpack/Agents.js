@@ -117,6 +117,9 @@ class MCTSAgent extends Agent{
         // Used to retrieve tree from previous state
         // Value changes at the end of each move
         this.playerAvailableMoves = null;
+        this.playerBoardState = null;
+
+        this.MAX_PATH_LENGTH = 1000
         if (WorB) {
             this.turn = 1
         }
@@ -126,7 +129,7 @@ class MCTSAgent extends Agent{
     }
 
     setRootNode(lastPlayerMove) {
-        console.log(lastPlayerMove + " <--")
+        // console.log(lastPlayerMove + " <--")
     }
 
     nodeVisited(nodeID) {
@@ -140,13 +143,21 @@ class MCTSAgent extends Agent{
 
     improveTree() {
 
-        console.log("Improving")
+        // console.log("Improving tree")
 
         var path = [this.rootNode]
         var activeNode = this.rootNode
+
+        var improvementPossible = true;
         
         // Selection
         while (activeNode.fullyExplored()) {
+
+            if (activeNode.hasNoMoves() || path.length > this.MAX_PATH_LENGTH) {
+                improvementPossible = false;
+                break;
+            }
+
             activeNode = activeNode.getNext()
             path.push(activeNode)
 
@@ -159,19 +170,35 @@ class MCTSAgent extends Agent{
         // console.log("Path Length: " + path.length)
 
         // Expansion
-        activeNode.expand()
+        if (improvementPossible) {
+            activeNode.expand()
+        }
     }
 
     selectMove(board, moves) {
 
         this.allExpandedNodes = []
 
-        // If first move
-        if (this.turn <= 2) {
-            this.rootNode = nodes.getNewNode(board, null, board.moves({ verbose: true }), this.WorB, null)
+        var foundRootNode = false;
+
+        if (this.playerAvailableMoves != null) {
+            for (let i = 0; i < this.playerAvailableMoves.length; i++){
+                var playerMove = this.playerAvailableMoves[i];
+                var boardAfterPlayer = new Chess(this.playerBoardState.board.fen())
+                boardAfterPlayer.move(playerMove.move)
+
+                if (boardAfterPlayer.fen() === board.fen()) {
+                    if (this.playerBoardState != null) {
+                        this.rootNode = this.playerBoardState.childrenDict[playerMove.id]
+                        foundRootNode = true;
+                    }
+                }
+            }
         }
 
-        else {
+        // Root node returned is faulty OR couldnt retrieve root
+        if (this.rootNode === null || !foundRootNode) {
+            console.log("Couldnt retrieve")
             this.rootNode = nodes.getNewNode(board, null, board.moves({ verbose: true }), this.WorB, null)
         }
 
@@ -191,12 +218,12 @@ class MCTSAgent extends Agent{
 
         // For clean code
         var dictLen = Object.keys(this.rootNode.moveObjects).length
+        console.log(this.rootNode.id + " < root ID")
 
         for (let i = 0; i < dictLen; i++) {
             var moveObject = this.rootNode.moveObjects[i]
 
             var opponentNode = this.rootNode.childrenDict[moveObject.id]
-
             if (opponentNode.qValue > bestQ) {
                 bestMove = moveObject.move;
                 bestQ = opponentNode.qValue;
@@ -208,12 +235,16 @@ class MCTSAgent extends Agent{
         this.playerAvailableMoves = []
 
         // State of board being delivered to opponent
-        for (let i = 0; i < playerState.moves.length; i++){
+        for (let i = 0; i < playerState.moveObjects.length; i++){
 
             // Add move to player moves
-            this.playerAvailableMoves.push(playerState.moves[i]);
+            this.playerAvailableMoves.push(playerState.moveObjects[i]);
         }
 
+        // Board state being left to player
+        this.playerBoardState = playerState;
+        
+        // Best move after Q-value analysis
         return bestMove
     }
 }
