@@ -138,15 +138,22 @@ class MCTSAgent extends Agent{
         while (activeNode.fullyExplored()) {
             activeNode = activeNode.getNext()
             path.push(activeNode)
+
+            // Adding to total visitations
+            if (!this.nodeVisited(activeNode.id)) {
+                this.allExpandedNodes.push(activeNode.id)
+            }
         }
 
-        console.log("Path Length: " + path.length)
+        // console.log("Path Length: " + path.length)
 
         // Expansion
         activeNode.expand()
     }
 
     selectMove(board, moves) {
+
+        this.allExpandedNodes = []
 
         // If first move
         if (this.turn <= 2) {
@@ -166,6 +173,8 @@ class MCTSAgent extends Agent{
         while (Date.now() - start < timeLimitSeconds) {
             this.improveTree()
         }
+
+        console.log(this.allExpandedNodes)
 
         var bestMove = null
         var bestQ = 1
