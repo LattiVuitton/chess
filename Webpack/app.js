@@ -11,6 +11,7 @@ var board = null
 
 var waitingForComputer = false;
 var boardReady = false;
+var canPickUp = true;
 
 const chess = require('chess.js')
 var game = new chess.Chess()
@@ -30,6 +31,7 @@ function onDragStart(source, piece, position, orientation) {
 
     // do not pick up pieces if the game is over
     if (game.isGameOver()) return false
+    if (!canPickUp) return false
 
     if (WorB && (piece.search(/^b/) !== -1)) return false
     if (!WorB && (piece.search(/^w/) !== -1)) return false
@@ -50,12 +52,13 @@ game.move(possibleMoves[randomIdx])
 // Only needed for MCTS agent
 var lastPlayerMove = null
 function onDrop(source, target) {
-      
+    
     gameActive = true
 
     var promoting = false;
     var newMove = null;
 
+    
     // Checking if move is a promotion
     firstLetter = target.split("")[1];
     if (firstLetter === BOARD_WIDTH.toString() || firstLetter === "1") {
@@ -77,28 +80,25 @@ function onDrop(source, target) {
           })
     }
 
-  
     // illegal move
     if (newMove === null) {
         return 'snapback'
-      }
-      
-    else {
-
-        // Check for end of game
-        if (game.isGameOver()) {
-            console.log("Game over")
-        }
-
-        else {
-            // Move using active agent
-            waitingForComputer = true
-        }
-
-        lastPlayerMove = newMove
     }
 
+    // Check for end of game
+    if (game.isGameOver()) {
+        console.log("Game over")
+    }
+
+    else {
+        // Move using active agent
+        waitingForComputer = true
+    }
+
+    lastPlayerMove = newMove
+
     boardReady = false;
+    canPickUp = false;
     window.setTimeout(updateBoard, TIMEOUT)
 }
 
@@ -195,6 +195,7 @@ function swapColor() {
         color = "Black"
         gameActive = true
         window.setTimeout(computerMove(), 250)
+        canPickUp = true;
     }
     else {
         var config = {
@@ -206,6 +207,7 @@ function swapColor() {
           }
         
         board = Chessboard('myBoard', config)
+        canPickUp = false;
     }
     document.getElementById("playerColor").innerHTML="Playing as: " + color
 }
@@ -293,6 +295,9 @@ function computerMove() {
 
     // Move on front end board
     window.setTimeout(updateBoard, TIMEOUT)
+
+    // Allow player pick up
+    canPickUp = true;
 }
 
 var timeCount = 0
