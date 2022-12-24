@@ -185,8 +185,9 @@ class MCTSAgent extends Agent{
             this.improveTree()
         }
 
-        var bestMove = null //this.rootNode.moveObjects[0]
+        var bestMove = null
         var bestQ = -1
+        var playerState = null
 
         // For clean code
         var dictLen = Object.keys(this.rootNode.moveObjects).length
@@ -199,11 +200,19 @@ class MCTSAgent extends Agent{
             if (opponentNode.qValue > bestQ) {
                 bestMove = moveObject.move;
                 bestQ = opponentNode.qValue;
+                playerState = opponentNode;
             }
         }
 
         // Clear moves available to opponent (human)
         this.playerAvailableMoves = []
+
+        // State of board being delivered to opponent
+        for (let i = 0; i < playerState.moves.length; i++){
+
+            // Add move to player moves
+            this.playerAvailableMoves.push(playerState.moves[i]);
+        }
 
         return bestMove
     }
