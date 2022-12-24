@@ -39,9 +39,14 @@ class Node {
     }
 
     fullyExplored() {
-        // console.log("Children: " + Object.keys(this.childrenDict).length)
-        // console.log("Moves: " + this.moves.length)
-        if (Object.keys(this.childrenDict).length === this.moves.length) return true
+        if (Object.keys(this.childrenDict).length === this.moves.length) {
+            return true
+        }
+        return false
+    }
+
+    hasNoMoves() {
+        if (this.moves.length === 0) return true
         return false
     }
 
@@ -58,7 +63,9 @@ class Node {
         var givenMoveObject = this.moveObjects[Math.floor(Math.random() * this.moveObjects.length)]
         // var givenMoveObject = this.moveObjects[0]
 
-
+        // console.log(givenMoveObject.id)
+        // console.log("^Hm")
+        // console.log(this.childrenDict[givenMoveObject.id])
         var nextNode = this.childrenDict[givenMoveObject.id]
 
         // // Next board state
