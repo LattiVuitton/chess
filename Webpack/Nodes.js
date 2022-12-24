@@ -77,8 +77,11 @@ class Node {
         return nextNode
     }
 
-    expand() {
-        // console.log("\nExpanding: " + this.id)
+    // Returns the qValue of best node
+    // OR qValue of worst node if isOpponent
+    expand(AgentWorB) {
+        var minQ = 1
+        var maxQ = -1
         for (let i = 0; i < this.moves.length; i++){
             var givenMove = this.moves[i]
             var giveMoveObject = new MoveObject(givenMove);
@@ -88,9 +91,21 @@ class Node {
             nextState.move(givenMove)
             var nextMoves = nextState.moves({ verbose: true })
             var nextNode = new Node(nextState, this, nextMoves, !this.WorB, givenMove)
-
+            if (this.WorB === AgentWorB) {
+                if (nextNode.qValue < minQ) {
+                    minQ = nextNode.qValue
+                }
+            }
+            else {
+                if (nextNode.qValue > maxQ) {
+                    maxQ = nextNode.qValue
+                }
+            }
             this.childrenDict[giveMoveObject.id] = nextNode
         }
+        if (this.WorB === AgentWorB) return minQ
+        return maxQ
+
     }
 }
 
