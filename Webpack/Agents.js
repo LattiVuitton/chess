@@ -8,6 +8,7 @@ class Agent{
         this.WorB = WorB
         this.requiresVerbose = true
         this.requiresLastPlayerMove = false;
+        this.offlineTreeBuilding = false;
     }
 
     // moves can either be only names, or full move object array
@@ -112,6 +113,7 @@ class MCTSAgent extends Agent{
         this.rootID = -1
         this.allExpandedNodes = []
         this.requiresLastPlayerMove = true;
+        this.offlineTreeBuilding = true;
 
         // Indicates what the opponent (human) is faced with at close
         // Used to retrieve tree from previous state
@@ -128,10 +130,6 @@ class MCTSAgent extends Agent{
         }
     }
 
-    setRootNode(lastPlayerMove) {
-        // console.log(lastPlayerMove + " <--")
-    }
-
     nodeVisited(nodeID) {
         for (let i = 0; i < this.allExpandedNodes.length; i++){
             if (nodeID === this.allExpandedNodes[i]) {
@@ -143,7 +141,7 @@ class MCTSAgent extends Agent{
 
     improveTree() {
 
-        // console.log("Improving tree")
+        console.log("Improving tree")
 
         var path = [this.rootNode]
         var activeNode = this.rootNode
@@ -193,6 +191,7 @@ class MCTSAgent extends Agent{
         // Expansion
         if (expansionNeeded) {
             foundValue = activeNode.expand(this.WorB)
+
         }
 
         else if (foundDraw) {
@@ -262,7 +261,7 @@ class MCTSAgent extends Agent{
             var moveObject = this.rootNode.moveObjects[i]
 
             var opponentNode = this.rootNode.childrenDict[moveObject.id]
-            console.log(moveObject.move.to + " <> " + opponentNode.qValue)
+            // console.log(moveObject.move.to + " <> " + opponentNode.qValue)
 
             if (opponentNode.qValue > bestQ) {
                 bestMove = moveObject.move;
@@ -283,6 +282,7 @@ class MCTSAgent extends Agent{
 
         // Board state being left to player
         this.playerBoardState = playerState;
+        this.rootNode = playerState;
         
         // Best move after Q-value analysis
         console.log(bestQ)
