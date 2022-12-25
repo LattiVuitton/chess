@@ -39,7 +39,10 @@ class Node {
             color = 'w';
         }
         this.qValue = eval.pieceValue(this.board, color);
+
+        // Used in backpropagation
         this.bestMoveObject = null;
+        this.bestMoveValue = null;
     }
 
     fullyExplored() {
@@ -54,6 +57,13 @@ class Node {
         return false
     }
 
+    matchesAgentColor(agentColor) {
+        if (this.WorB === agentColor) {
+            return true;
+        }
+        return false;
+    }
+
     // Multi-arm bandit
     // Assumes that the node is expanded
     getNext() {
@@ -64,8 +74,8 @@ class Node {
         }
 
         // Random move
-        var givenMoveObject = this.moveObjects[Math.floor(Math.random() * this.moveObjects.length)]
-        // var givenMoveObject = this.moveObjects[0]
+        // var givenMoveObject = this.moveObjects[Math.floor(Math.random() * this.moveObjects.length)]
+        var givenMoveObject = this.moveObjects[0]
 
         // console.log(givenMoveObject.id)
         // console.log("^Hm")
@@ -110,9 +120,16 @@ class Node {
             }
             this.childrenDict[giveMoveObject.id] = nextNode
         }
+
+        // Updating best move from this node and value achieved
         this.bestMoveObject = bestActionObject;
-        if (this.WorB === AgentWorB) return minQ
-        return maxQ
+            
+        if (this.matchesAgentColor) {
+            this.bestMoveValue = minQ;
+            return minQ;
+        }
+        this.bestMoveValue = maxQ;
+        return maxQ;
 
     }
 }
