@@ -208,8 +208,15 @@ class MCTSAgent extends Agent{
 
         // Backprop
         for (let j = path.length - 1; j >= 0; j--) {
-            path[j].qValue = ((path[j].qValue * path[j].visits) + foundValue) / (path[j].visits + 1)
-            path[j].visits++
+            var pathNode = path[j]
+            if (pathNode.matchesAgentColor(this.WorB)) {
+                console.log("Match")
+            }
+            else {
+                console.log("No match")
+            }
+            //  = ((path[j].qValue * path[j].visits) + foundValue) / (path[j].visits + 1)
+            // path[j].visits++
         }
     }
 
