@@ -1,7 +1,10 @@
 // const printHello = require('./print-hello');
 var agents = require('./Agents');
 
+// No timeout on certain moves
 const TIMEOUT = 0;
+// Used to cover piece moves
+const COVER_TIMEOUT = 500;
 
 var opponent = agents.getAgent("random", 0, true);
 
@@ -27,7 +30,11 @@ function setOpponent(style) {
     opponent = agents.getAgent(style, getID, !WorB)
 }
 
+// Variable stopping tree improvement during piece lift
+var treeBuildingAllowed = true;
 function onDragStart(source, piece, position, orientation) {
+
+    treeBuildingAllowed = false;
 
     // do not pick up pieces if the game is over
     if (game.isGameOver()) return false
@@ -83,6 +90,7 @@ function onDrop(source, target) {
 
     // illegal move
     if (newMove === null) {
+        treeBuildingAllowed = true;
         return 'snapback'
     }
 
@@ -267,6 +275,10 @@ function updateBoard() {
     boardReady = true;
 }
 
+function activateTreeBuilding() {
+    treeBuildingAllowed = true;
+}
+
 function computerMove() {
 
     // Reset
@@ -282,13 +294,6 @@ function computerMove() {
         moves = game.moves()
     }
 
-    // If player move must be updated
-    if (opponent.requiresLastPlayerMove) {
-
-        // Used for efficient root node setting
-        opponent.setRootNode(lastPlayerMove);
-    }
-
     // Get agent move
     nextMove = opponent.selectMove(game, moves)
 
@@ -300,6 +305,9 @@ function computerMove() {
 
     // Allow player pick up
     canPickUp = true;
+
+    // Allow offline tree building
+    window.setTimeout(activateTreeBuilding, COVER_TIMEOUT);
 }
 
 var timeCount = 0
@@ -330,6 +338,11 @@ function update() {
                 marker = 0
             }
         }
+    }
+
+    else if (gameActive && opponent.offlineTreeBuilding && treeBuildingAllowed){
+        // console.log("Waiting for player")
+        opponent.improveTree()
     }
 }
 
