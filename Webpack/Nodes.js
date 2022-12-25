@@ -39,6 +39,7 @@ class Node {
             color = 'w';
         }
         this.qValue = eval.pieceValue(this.board, color);
+        this.bestMoveObject = null;
     }
 
     fullyExplored() {
@@ -85,6 +86,7 @@ class Node {
     expand(AgentWorB) {
         var minQ = 1
         var maxQ = -1
+        var bestActionObject = null;
         for (let i = 0; i < this.moves.length; i++){
             var givenMove = this.moves[i]
             var giveMoveObject = new MoveObject(givenMove);
@@ -97,15 +99,18 @@ class Node {
             if (this.WorB === AgentWorB) {
                 if (nextNode.qValue < minQ) {
                     minQ = nextNode.qValue
+                    bestActionObject = giveMoveObject;
                 }
             }
             else {
                 if (nextNode.qValue > maxQ) {
                     maxQ = nextNode.qValue
+                    bestActionObject = giveMoveObject;
                 }
             }
             this.childrenDict[giveMoveObject.id] = nextNode
         }
+        this.bestMoveObject = bestActionObject;
         if (this.WorB === AgentWorB) return minQ
         return maxQ
 
