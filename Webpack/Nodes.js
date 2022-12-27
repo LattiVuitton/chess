@@ -42,7 +42,7 @@ class Node {
 
         // Used in backpropagation
         this.bestMoveObject = null;
-        this.bestMoveValue = null;
+        this.bestMoveValue = this.qValue;
     }
 
     fullyExplored() {
@@ -61,6 +61,7 @@ class Node {
         if (this.WorB === agentColor) {
             return true;
         }
+
         return false;
     }
 
@@ -73,9 +74,17 @@ class Node {
             return null
         }
 
+        // EPSILON
+        var eps = Math.random()
+        const THRESHHOLD = 0.2
+        if (eps < THRESHHOLD) {
+            console.log("Playing random")
+        }
+
         // Random move
-        // var givenMoveObject = this.moveObjects[Math.floor(Math.random() * this.moveObjects.length)]
-        var givenMoveObject = this.moveObjects[0]
+
+        var givenMoveObject = this.moveObjects[Math.floor(Math.random() * this.moveObjects.length)]
+        // var givenMoveObject = this.moveObjects[0]
 
         // console.log(givenMoveObject.id)
         // console.log("^Hm")
@@ -94,9 +103,10 @@ class Node {
     // Returns the qValue of best node
     // OR qValue of worst node if isOpponent
     expand(AgentWorB) {
-        var minQ = 1
-        var maxQ = -1
+        var minQ = 100;
+        var maxQ = -1;
         var bestActionObject = null;
+        // console.log("\nStart")
         for (let i = 0; i < this.moves.length; i++){
             var givenMove = this.moves[i]
             var giveMoveObject = new MoveObject(givenMove);
@@ -106,14 +116,19 @@ class Node {
             nextState.move(givenMove)
             var nextMoves = nextState.moves({ verbose: true })
             var nextNode = new Node(nextState, this, nextMoves, !this.WorB, givenMove)
+
+            // console.log(nextNode.qValue)
+
             if (this.WorB === AgentWorB) {
                 if (nextNode.qValue < minQ) {
+                    // console.log("Replacing " + minQ + " with " + nextNode.qValue)
                     minQ = nextNode.qValue
                     bestActionObject = giveMoveObject;
                 }
             }
             else {
                 if (nextNode.qValue > maxQ) {
+                    // console.log("Replacing (max)" + maxQ + " with " + nextNode.qValue)
                     maxQ = nextNode.qValue
                     bestActionObject = giveMoveObject;
                 }
@@ -123,14 +138,15 @@ class Node {
 
         // Updating best move from this node and value achieved
         this.bestMoveObject = bestActionObject;
-            
-        if (this.matchesAgentColor) {
+
+        if (this.matchesAgentColor(AgentWorB)) {
             this.bestMoveValue = minQ;
+            // console.log("Min: " + minQ)
             return minQ;
         }
         this.bestMoveValue = maxQ;
+        // console.log("Max: " + maxQ)
         return maxQ;
-
     }
 }
 
