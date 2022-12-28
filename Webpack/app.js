@@ -153,6 +153,9 @@ MCTSAgent.addEventListener("click", function () {
     changeAgent("MCTS")
 }, false);
 
+// Auto set MCTS
+changeAgent("MCTS")
+
 function changeAgent(agentName) {
     if (!gameActive) {
 
