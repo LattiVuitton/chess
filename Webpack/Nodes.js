@@ -1,6 +1,10 @@
 const { Chess } = require("chess.js");
 const eval = require('./Evaluation');
 
+function round(value, decimals) {
+    return Number(Math.round(value+'e'+decimals)+'e-'+decimals);
+  }
+
 var nodeID = -1
 var moveID = -1
 
@@ -106,25 +110,39 @@ class Node {
 
         // EPSILON
         var eps = Math.random()
-        const THRESHHOLD = 0.2
+
+        var THRESHHOLD = 0.2
+
+        if (this.visits < this.moves.length && false) {
+            THRESHHOLD = 1;
+        }
+
+        else {
+            // console.log("Setting low")
+            THRESHHOLD = 0.2
+        }
+
         var givenMoveObject = null;
 
         if (eps < THRESHHOLD || this.bestMoveObject === null) {
             givenMoveObject = this.moveObjects[Math.floor(Math.random() * this.moveObjects.length)]
+            console.log("Giving move: " + givenMoveObject.move.to + " () " + givenMoveObject.move.color)
         }
 
         else {
             givenMoveObject = this.bestMoveObject
         }
 
-        var nextNode = this.childrenDict[givenMoveObject.id]
+        return this.childrenDict[givenMoveObject.id]
 
-        return nextNode
     }
 
     // Returns the qValue of best node
     // OR qValue of worst node if isOpponent
     expand(AgentWorB) {
+
+        console.log("\nExpanding: " + this.id)
+
         var minQ = 100;
         var maxQ = -1;
         var bestActionObject = null;
@@ -140,7 +158,7 @@ class Node {
 
             var nextNode = new Node(nextState, this, nextMoves, !this.WorB, givenMove, this.getOppColor(this.ownerColor))
 
-            // console.log(nextNode.qValue)
+            // console.log("Move: " + nextNode.action.to + ", Q: " + round(nextNode.qValue, 4))
 
             if (this.WorB === AgentWorB) {
                 if (nextNode.qValue < minQ) {
@@ -158,6 +176,7 @@ class Node {
             }
             this.childrenDict[giveMoveObject.id] = nextNode
         }
+        console.log("")
 
         // Updating best move from this node and value achieved
         this.bestMoveObject = bestActionObject;
