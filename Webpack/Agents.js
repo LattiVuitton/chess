@@ -2,6 +2,10 @@ const { Chess } = require("chess.js");
 const eval = require('./Evaluation');
 const nodes = require('./Nodes');
 
+function round(value, decimals) {
+    return Number(Math.round(value+'e'+decimals)+'e-'+decimals);
+  }
+
 class Agent{
     constructor(id, WorB) {
         this.id = id;
@@ -219,12 +223,14 @@ class MCTSAgent extends Agent{
             console.log("PATH: " + path.length)
         }
 
-        console.log(path)
+        // console.log(path)
 
         // Backprop
-        for (let j = path.length - 1; j >= 0; j--) {
+        for (let j = path.length - 2; j >= 0; j--) {
             var pathNode = path[j]
             pathNode.visits++
+
+            // console.log(pathNode.id)
 
             // If node is unexpanded (no children)
             if (!expansionNeeded && j === path.length) {
@@ -232,35 +238,40 @@ class MCTSAgent extends Agent{
             }
 
             // Last node in path does not need backprop
-            else if (j != path.length) {
+            else if (path.length > 1) {
 
-                // if (j === 1) {
-                //     console.log(pathNode.actionObject.move.to)
-                // }
+                if (j === 0) {
+                    console.log(pathNode)
+                }
 
                 if (pathNode.matchesAgentColor(this.WorB)) {
 
-                    if (childNodeValue > pathNode.bestMoveValue) {
+                    if (childNodeValue >= pathNode.bestMoveValue) {
 
-                        if (j === 0) {
-                            console.log("Updating from " + pathNode.bestMoveObject.move.to + " to " + 
-                                path[j + 1].actionObject.move.to + " with q: " + childNodeValue)
-                            // console.log(pathNode.bestMoveObject)
-                            // console.log(path[j + 1].actionObject)
-                        }
+                        // if (j === 0) {
+                        //     console.log("Updating from " + pathNode.bestMoveObject.move.to + " to " + 
+                        //         path[j + 1].actionObject.move.to + " with q: " + childNodeValue)
+                        //     // console.log(pathNode.bestMoveObject)
+                        //     // console.log(path[j + 1].actionObject)
+                        // }
+
 
                         pathNode.bestMoveValue = childNodeValue;
+
+                        // console.log("")
+                        // console.log(path)
+                        // console.log(j + " <> " + path.length)
+                        // console.log(path[j+1])
                         pathNode.bestMoveObject = path[j + 1].actionObject
-                        
+
                         // UPDATE NEEDED FOR UPDATING BEST MOVE
                         // console.log("Replace 1, visits: " + pathNode.visits)
                         // console.log("ID: " + pathNode.id)
                         // console.log("Root" + this.rootNode.id)
                         for (let i = 0; i <  Object.keys(this.rootNode.moveObjects).length; i++){
                             if (pathNode.id === this.rootNode.childrenDict[this.rootNode.moveObjects[i].id].id) {
-                                // console.log("Useful update")
+                                console.log("Useful update")
                             }
-                            // console.log(pathNode.id + " <> " + this.rootNode.childrenDict[this.rootNode.moveObjects[i].id].id)
                         }
                     }
 
@@ -339,9 +350,9 @@ class MCTSAgent extends Agent{
             var opponentNode = this.rootNode.childrenDict[moveObject.id]
             // console.log(moveObject.move.to + " <> " + opponentNode.qValue)
 
-            // console.log("\nMove: " + moveObject.move.to)
-            // console.log("Value: " + opponentNode.bestMoveValue)
-            // console.log("Visits: " + opponentNode.visits)
+            console.log("\nMove: " + moveObject.move.to)
+            console.log("Value: " + round(opponentNode.bestMoveValue, 2))
+            console.log("Visits: " + opponentNode.visits)
 
 
             if (opponentNode.bestMoveValue > bestQ) {
