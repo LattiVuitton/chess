@@ -342,7 +342,7 @@ function update() {
 
     else if (gameActive && opponent.offlineTreeBuilding && treeBuildingAllowed){
         // console.log("Waiting for player")
-        opponent.improveTree()
+        // opponent.improveTree()
     }
 }
 
