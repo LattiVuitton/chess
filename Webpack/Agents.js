@@ -230,7 +230,7 @@ class MCTSAgent extends Agent{
             var pathNode = path[j]
             pathNode.visits++
 
-            // console.log(pathNode.id)
+            // console.log(pathNode.visits)
 
             // If node is unexpanded (no children)
             if (!expansionNeeded && j === path.length) {
@@ -241,7 +241,8 @@ class MCTSAgent extends Agent{
             else if (path.length > 1) {
 
                 if (j === 0) {
-                    console.log(pathNode)
+                    // console.log("Best moves: " + pathNode.bestMoveObject)
+                    // console.log(pathNode.id)
                 }
 
                 if (pathNode.matchesAgentColor(this.WorB)) {
@@ -249,8 +250,9 @@ class MCTSAgent extends Agent{
                     if (childNodeValue >= pathNode.bestMoveValue) {
 
                         // if (j === 0) {
-                        //     console.log("Updating from " + pathNode.bestMoveObject.move.to + " to " + 
-                        //         path[j + 1].actionObject.move.to + " with q: " + childNodeValue)
+                            console.log("Updating from " + pathNode.bestMoveObject.move.to + " to " + 
+                                path[j + 1].actionObject.move.to + " with q: " + round(childNodeValue, 4) + " (ID: "
+                            + pathNode.id + ")")
                         //     // console.log(pathNode.bestMoveObject)
                         //     // console.log(path[j + 1].actionObject)
                         // }
@@ -264,15 +266,11 @@ class MCTSAgent extends Agent{
                         // console.log(path[j+1])
                         pathNode.bestMoveObject = path[j + 1].actionObject
 
-                        // UPDATE NEEDED FOR UPDATING BEST MOVE
-                        // console.log("Replace 1, visits: " + pathNode.visits)
-                        // console.log("ID: " + pathNode.id)
-                        // console.log("Root" + this.rootNode.id)
-                        for (let i = 0; i <  Object.keys(this.rootNode.moveObjects).length; i++){
-                            if (pathNode.id === this.rootNode.childrenDict[this.rootNode.moveObjects[i].id].id) {
-                                console.log("Useful update")
-                            }
-                        }
+                        // for (let i = 0; i <  Object.keys(this.rootNode.moveObjects).length; i++){
+                        //     if (pathNode.id === this.rootNode.childrenDict[this.rootNode.moveObjects[i].id].id) {
+                        //         console.log("Useful update")
+                        //     }
+                        // }
                     }
 
                     else {
@@ -281,7 +279,11 @@ class MCTSAgent extends Agent{
                 }
 
                 else {
-                    if (childNodeValue < pathNode.bestMoveValue) {
+                    if (childNodeValue <= pathNode.bestMoveValue) {
+
+                        console.log("Updating from " + pathNode.bestMoveObject.move.to + " to " + 
+                        path[j + 1].actionObject.move.to + " with q: " + round(childNodeValue, 4) + " (ID: "
+                    + pathNode.id + ")")
 
                         pathNode.bestMoveValue = childNodeValue;
                         pathNode.bestMoveObject = path[j+1].actionObject
@@ -323,8 +325,8 @@ class MCTSAgent extends Agent{
 
         // Root node returned is faulty OR couldnt retrieve root
         if (this.rootNode === null || !foundRootNode) {
-            console.log("Couldnt retrieve")
             this.rootNode = nodes.getNewNode(board, null, board.moves({ verbose: true }), this.WorB, null)
+            console.log("Couldnt retrieve, giving new: " + this.rootNode.id)
         }
 
         this.turn++
@@ -344,18 +346,25 @@ class MCTSAgent extends Agent{
         // For clean code
         var dictLen = Object.keys(this.rootNode.moveObjects).length
 
+        console.log("")
+
         for (let i = 0; i < dictLen; i++) {
             var moveObject = this.rootNode.moveObjects[i]
 
             var opponentNode = this.rootNode.childrenDict[moveObject.id]
             // console.log(moveObject.move.to + " <> " + opponentNode.qValue)
 
-            console.log("\nMove: " + moveObject.move.to)
-            console.log("Value: " + round(opponentNode.bestMoveValue, 2))
-            console.log("Visits: " + opponentNode.visits)
+            // console.log("\nMove: " + moveObject.move.to)
+            // console.log("Value: " + round(opponentNode.bestMoveValue, 4))
+            // console.log("Visits: " + opponentNode.visits)
 
 
             if (opponentNode.bestMoveValue > bestQ) {
+                var PRINTING = "Null"
+                if (bestMoveO != null) {
+                    PRINTING = bestMove.to
+                }
+                console.log("Updating FROM " + PRINTING + " to " + moveObject.move.to)
                 bestMove = moveObject.move;
                 bestQ = opponentNode.bestMoveValue;
                 playerState = opponentNode;
@@ -374,10 +383,13 @@ class MCTSAgent extends Agent{
 
         // Board state being left to player
         this.playerBoardState = playerState;
-        this.rootNode = playerState;
+        // this.rootNode = playerState;
         
         // Best move after Q-value analysis
-        console.log(bestQ)
+        // console.log(round(bestQ,4))
+
+        console.log(this.rootNode)
+        console.log("")
         return bestMove
     }
 }
@@ -388,7 +400,6 @@ var agentTypesDict = {
     "greedy": GreedyAgent,
     "MCTS": MCTSAgent
 };
-
 
 exports.getAgent = function getAgentType(agentType, id, WorB) {
 
