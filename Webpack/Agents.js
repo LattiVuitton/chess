@@ -215,6 +215,12 @@ class MCTSAgent extends Agent{
             // console.log("werc: " + foundValue)
         }
 
+        if (foundLoss) {
+            console.log("PATH: " + path.length)
+        }
+
+        console.log(path)
+
         // Backprop
         for (let j = path.length - 1; j >= 0; j--) {
             var pathNode = path[j]
@@ -225,10 +231,27 @@ class MCTSAgent extends Agent{
                 console.log("No backprop here")
             }
 
-            else {
+            // Last node in path does not need backprop
+            else if (j != path.length) {
+
+                // if (j === 1) {
+                //     console.log(pathNode.actionObject.move.to)
+                // }
+
                 if (pathNode.matchesAgentColor(this.WorB)) {
+
                     if (childNodeValue > pathNode.bestMoveValue) {
+
+                        if (j === 0) {
+                            console.log("Updating from " + pathNode.bestMoveObject.move.to + " to " + 
+                                path[j + 1].actionObject.move.to + " with q: " + childNodeValue)
+                            // console.log(pathNode.bestMoveObject)
+                            // console.log(path[j + 1].actionObject)
+                        }
+
                         pathNode.bestMoveValue = childNodeValue;
+                        pathNode.bestMoveObject = path[j + 1].actionObject
+                        
                         // UPDATE NEEDED FOR UPDATING BEST MOVE
                         // console.log("Replace 1, visits: " + pathNode.visits)
                         // console.log("ID: " + pathNode.id)
@@ -240,16 +263,24 @@ class MCTSAgent extends Agent{
                             // console.log(pathNode.id + " <> " + this.rootNode.childrenDict[this.rootNode.moveObjects[i].id].id)
                         }
                     }
+
+                    else {
+                        break;
+                    }
                 }
 
                 else {
                     if (childNodeValue < pathNode.bestMoveValue) {
+
                         pathNode.bestMoveValue = childNodeValue;
+                        pathNode.bestMoveObject = path[j+1].actionObject
+
                         // // UPDATE NEEDED FOR UPDATING BEST MOVE
                         // console.log("Replace 2, visits: " + pathNode.visits)
                         // console.log("ID: " + pathNode.id)
-
-
+                    }
+                    else {
+                        break;
                     }
                 }
                 //  = ((path[j].qValue * path[j].visits) + foundValue) / (path[j].visits + 1)
@@ -308,9 +339,9 @@ class MCTSAgent extends Agent{
             var opponentNode = this.rootNode.childrenDict[moveObject.id]
             // console.log(moveObject.move.to + " <> " + opponentNode.qValue)
 
-            console.log("\nMove: " + moveObject.move.to)
-            console.log("Value: " + opponentNode.bestMoveValue)
-            console.log("Visits: " + opponentNode.visits)
+            // console.log("\nMove: " + moveObject.move.to)
+            // console.log("Value: " + opponentNode.bestMoveValue)
+            // console.log("Visits: " + opponentNode.visits)
 
 
             if (opponentNode.bestMoveValue > bestQ) {
