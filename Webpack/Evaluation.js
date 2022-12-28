@@ -10,11 +10,10 @@ const pieceValues = {
 
 exports.evaluateBoard = function evaluate(game) {
 
-
-
     // Evaluation
     return count
 }
+
 var highest = 0
 function artificialCost(cost) {
     // Artificial Cost
