@@ -22,7 +22,7 @@ class MoveObject {
 }
 
 class Node {
-    constructor(board, parent, moves, WorB, action) {
+    constructor(board, parent, moves, WorB, action, ownerColor) {
 
         // Visits are only counted during backpropagation
         this.visits = 1;
@@ -38,10 +38,25 @@ class Node {
         if (WorB) {
             color = 'w';
         }
-        this.qValue = eval.pieceValue(this.board, color);
+
+        this.ownerColor = ownerColor
+
+        this.qValue = eval.pieceValue(this.board, ownerColor);
+        // console.log(ownerColor + " <")
 
         // Used in backpropagation
-        this.bestMoveObject = null;
+        this.actionObject = null
+        if (parent != null) {
+            for (let i = 0; i < parent.moveObjects.length; i++){
+                // console.log(parent.moveObjects[i].move)
+                // console.log(parent.moves[i])
+                // console.log("\n")
+                if (parent.moves[i] === action) {
+                    this.actionObject = parent.moveObjects[i]
+                    break;
+                }
+            }
+        }
         this.bestMoveValue = this.qValue;
     }
 
@@ -65,6 +80,21 @@ class Node {
         return false;
     }
 
+    getOppColor(color) {
+        if (color === 'w') {
+            return 'b'
+        }
+
+        if (color === 'b') {
+            return 'w'
+        }
+
+        else {
+            console.log("error!")
+            return null;
+        }
+    }
+
     // Multi-arm bandit
     // Assumes that the node is expanded
     getNext() {
@@ -77,26 +107,18 @@ class Node {
         // EPSILON
         var eps = Math.random()
         const THRESHHOLD = 0.2
-        if (eps < THRESHHOLD) {
-            console.log("Playing random")
+        var givenMoveObject = null;
+
+        if (eps < THRESHHOLD || this.bestMoveObject === null) {
+            givenMoveObject = this.moveObjects[Math.floor(Math.random() * this.moveObjects.length)]
         }
 
-        // Random move
+        else {
+            givenMoveObject = this.bestMoveObject
+        }
 
-        var givenMoveObject = this.moveObjects[Math.floor(Math.random() * this.moveObjects.length)]
-        // var givenMoveObject = this.moveObjects[0]
-
-        // console.log(givenMoveObject.id)
-        // console.log("^Hm")
-        // console.log(this.childrenDict[givenMoveObject.id])
         var nextNode = this.childrenDict[givenMoveObject.id]
 
-        // // Next board state
-        // var nextState = new Chess(this.board.fen())
-        // nextState.move(givenMove)
-        // var nextMoves = nextState.moves({ verbose: true })
-
-        // var nextNode = new Node(nextState, this, nextMoves, !this.WorB, givenMove)
         return nextNode
     }
 
@@ -115,7 +137,8 @@ class Node {
             var nextState = new Chess(this.board.fen())
             nextState.move(givenMove)
             var nextMoves = nextState.moves({ verbose: true })
-            var nextNode = new Node(nextState, this, nextMoves, !this.WorB, givenMove)
+
+            var nextNode = new Node(nextState, this, nextMoves, !this.WorB, givenMove, this.getOppColor(this.ownerColor))
 
             // console.log(nextNode.qValue)
 
@@ -152,6 +175,10 @@ class Node {
 
 exports.getNewNode = function getNode(board, parent, moves, WorB, action) {
 
-    var node = new Node(board, parent, moves, WorB, action)
+    var ownedColor = 'b'
+    if (WorB) {
+        ownedColor = 'w'
+    }
+    var node = new Node(board, parent, moves, WorB, action, ownedColor)
     return node
 }
