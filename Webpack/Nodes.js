@@ -26,7 +26,24 @@ class MoveObject {
 }
 
 class Node {
-    constructor(board, parent, moves, WorB, action, ownerColor) {
+
+    updateNodeValue(newValue) {
+        this.bestMoveValue = newValue;
+        if (round(newValue, 4) === 0.5275) {
+            console.log("\n-----------------------------------------------------------------\n")
+            console.log("Setting node " + this.id + " to " + round(newValue, 4))
+            console.log(this.action)
+            console.log("Is it expanded? " + this.fullyExplored())
+            if (this.fullyExplored()) {
+                console.log(this.bestMoveObject)
+                console.log(this.moves)
+                console.log(this.childrenDict)
+            }
+
+        }
+    }
+
+    constructor(board, parent, moves, WorB, action, isComp) {
 
         // Visits are only counted during backpropagation
         this.visits = 1;
@@ -38,16 +55,18 @@ class Node {
         this.moveObjects = []
         this.childrenDict = new Object();
         this.WorB = WorB;
-        this.action = action
-        var color = 'b';
+        this.action = action;
+
+        this.ownerColor = 'b';
+
         if (WorB) {
-            color = 'w';
+            this.ownerColor = 'w';
         }
 
-        this.ownerColor = ownerColor
-
-        this.qValue = eval.pieceValue(this.board, ownerColor);
-        // console.log(ownerColor + " <")
+        // Evaluation is relative to the colour of the node.
+        // E.g. black node with high black piece count has q > 0.5,
+        //      irrespective of whether the node is a human or not.
+        this.qValue = eval.pieceValue(this.board, this.ownerColor);
 
         // Used in backpropagation
         this.actionObject = null
@@ -62,7 +81,10 @@ class Node {
                 }
             }
         }
-        this.bestMoveValue = this.qValue;
+        // this.bestMoveValue = this.qValue;
+        // console.log("From node creation")
+        this.updateNodeValue(this.qValue)
+
     }
 
     fullyExplored() {
@@ -122,7 +144,7 @@ class Node {
         }
 
         else {
-            console.log("This node id: " + this.id)
+            console.log("Completed node with id: " + this.id)
             // console.log("Moves: ")
             // console.log(this.moves)
 
@@ -148,7 +170,7 @@ class Node {
     // OR qValue of worst node if isOpponent
     expand(AgentWorB) {
 
-        // console.log("\nExpanding: " + this.id)
+        console.log("\nExpanding: " + this.id)
 
         var minQ = 100;
         var maxQ = -1;
@@ -163,11 +185,13 @@ class Node {
             nextState.move(givenMove)
             var nextMoves = nextState.moves({ verbose: true })
 
-            var nextNode = new Node(nextState, this, nextMoves, !this.WorB, givenMove, this.getOppColor(this.ownerColor))
+            // var nextNode = new Node(nextState, this, nextMoves, !this.WorB, givenMove, this.getOppColor(this.ownerColor))
+            var nextNode = new Node(nextState, this, nextMoves, !this.WorB, givenMove, this.ownerColor)
 
             // console.log("Move: " + nextNode.action.to + ", Q: " + round(nextNode.qValue, 4))
 
-            if (this.WorB === AgentWorB) {
+            if (this.matchesAgentColor(AgentWorB)) {
+
                 if (nextNode.qValue < minQ) {
                     // console.log("Replacing " + minQ + " with " + nextNode.qValue)
                     minQ = nextNode.qValue
@@ -189,12 +213,17 @@ class Node {
         this.bestMoveObject = bestActionObject;
 
         if (this.matchesAgentColor(AgentWorB)) {
-            this.bestMoveValue = minQ;
-            // console.log("Min: " + minQ)
+            // console.log("MIN MIN MIN MIN MIN MIN MIN MIN MIN MIN MIN MIN MIN MIN MIN MIN MIN")
+
+            this.updateNodeValue(minQ)
+            // this.bestMoveValue = minQ;
             return minQ;
         }
-        this.bestMoveValue = maxQ;
-        // console.log("Max: " + maxQ)
+        // console.log("MAX MAX MAX MAX MAX MAX MAX MAX MAX MAX MAX MAX MAX MAX MAX")
+
+        this.updateNodeValue(maxQ)
+
+        // this.bestMoveValue = maxQ;
         return maxQ;
     }
 }
@@ -205,6 +234,7 @@ exports.getNewNode = function getNode(board, parent, moves, WorB, action) {
     if (WorB) {
         ownedColor = 'w'
     }
+
     var node = new Node(board, parent, moves, WorB, action, ownedColor)
     return node
 }
