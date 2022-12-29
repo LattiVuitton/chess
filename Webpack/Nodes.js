@@ -136,7 +136,6 @@ class Node {
         // }
         
         // UCB
-
         var bestA = -1
         var bestAction = null;
 
