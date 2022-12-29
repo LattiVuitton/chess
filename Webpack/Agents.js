@@ -195,7 +195,7 @@ class MCTSAgent extends Agent{
         // Expansion
         if (expansionNeeded) {
             foundValue = activeNode.expand(this.WorB)
-
+            
         }
 
         else if (foundDraw) {
@@ -250,9 +250,9 @@ class MCTSAgent extends Agent{
                     if (childNodeValue >= pathNode.bestMoveValue) {
 
                         // if (j === 0) {
-                            console.log("Updating from " + pathNode.bestMoveObject.move.to + " to " + 
-                                path[j + 1].actionObject.move.to + " with q: " + round(childNodeValue, 4) + " (ID: "
-                            + pathNode.id + ")")
+                            // console.log("Updating from " + pathNode.bestMoveObject.move.to + " to " + 
+                            //     path[j + 1].actionObject.move.to + " with q: " + round(childNodeValue, 4) + " (ID: "
+                            // + pathNode.id + ")")
                         //     // console.log(pathNode.bestMoveObject)
                         //     // console.log(path[j + 1].actionObject)
                         // }
@@ -281,9 +281,9 @@ class MCTSAgent extends Agent{
                 else {
                     if (childNodeValue <= pathNode.bestMoveValue) {
 
-                        console.log("Updating from " + pathNode.bestMoveObject.move.to + " to " + 
-                        path[j + 1].actionObject.move.to + " with q: " + round(childNodeValue, 4) + " (ID: "
-                    + pathNode.id + ")")
+                    //     console.log("Updating from " + pathNode.bestMoveObject.move.to + " to " + 
+                    //     path[j + 1].actionObject.move.to + " with q: " + round(childNodeValue, 4) + " (ID: "
+                    // + pathNode.id + ")")
 
                         pathNode.bestMoveValue = childNodeValue;
                         pathNode.bestMoveObject = path[j+1].actionObject
@@ -361,7 +361,7 @@ class MCTSAgent extends Agent{
 
             if (opponentNode.bestMoveValue > bestQ) {
                 var PRINTING = "Null"
-                if (bestMoveO != null) {
+                if (bestMove != null) {
                     PRINTING = bestMove.to
                 }
                 console.log("Updating FROM " + PRINTING + " to " + moveObject.move.to)
