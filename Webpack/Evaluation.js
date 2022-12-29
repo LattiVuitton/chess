@@ -29,13 +29,13 @@ function artificialCost(cost) {
 
 }
 
-exports.pieceValue = function countPieces(game, playerColor) {
+exports.pieceValue = function countPieces(game, nodeColor) {
     
     var myScore = 0
     var oppScore = 0
 
     myColor = 'b'
-    if (playerColor === 'b') {
+    if (nodeColor === 'b') {
         myColor = 'w'
     }
 
@@ -56,5 +56,6 @@ exports.pieceValue = function countPieces(game, playerColor) {
             }
         }
     }
+
     return (myScore + Number.EPSILON) / (myScore + oppScore + Number.EPSILON)
 }
