@@ -395,8 +395,6 @@ class MCTSAgent extends Agent{
         // Best move after Q-value analysis
         // console.log(round(bestQ,4))
 
-        console.log(this.rootNode)
-        console.log("")
         return bestMove
     }
 }
