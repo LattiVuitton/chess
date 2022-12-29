@@ -121,21 +121,44 @@ class Node {
             return null
         }
 
-        // EPSILON
-        var eps = Math.random()
-        var THRESHHOLD = 0.1
+        // // EPSILON
+        // var eps = Math.random()
+        // var THRESHHOLD = 0.1
 
-        var givenMoveObject = null;
+        // var givenMoveObject = null;
 
-        if (eps < THRESHHOLD || this.bestMoveObject === null) {
-            givenMoveObject = this.moveObjects[Math.floor(Math.random() * this.moveObjects.length)]
-        }
+        // if (eps < THRESHHOLD || this.bestMoveObject === null) {
+        //     givenMoveObject = this.moveObjects[Math.floor(Math.random() * this.moveObjects.length)]
+        // }
 
-        else {
-            givenMoveObject = this.bestMoveObject
-        }
+        // else {
+        //     givenMoveObject = this.bestMoveObject
+        // }
         
-        return this.childrenDict[givenMoveObject.id]
+        // UCB
+
+        var bestA = -1
+        var bestAction = null;
+
+        var t = this.visits
+        var c = 0.3;
+
+        for (let i = 0; i < this.moveObjects.length; i++){
+            var actionCheck = this.moveObjects[i];
+
+            var Q = invertEval(this.childrenDict[actionCheck.id].qValue)
+            var N = this.childrenDict[actionCheck.id].visits
+            // console.log("Q: " + round(Q,2) + " c: " + c + " N: " + N + " t: " + t)
+
+            var A = Q + c * (Math.log(t) / N)
+
+            if (A > bestA) {
+                bestA = A;
+                bestAction = actionCheck
+            }
+        }
+
+        return this.childrenDict[bestAction.id]
     }
 
     expand(AgentWorB) {
@@ -148,7 +171,6 @@ class Node {
         if (this.hasNoMoves()) {
             if (this.board.isCheckmate()) {
                 maxQ = 0;
-                console.log("Checkmate")
             }
             else {
                 maxQ = 0.5;
@@ -168,10 +190,12 @@ class Node {
             var nextNode = new Node(nextState, this, nextMoves, !this.WorB, givenMove, true)
 
             if (nextNode.hasNoMoves()) {
-                console.log("Opponent checkmate")
-                if (this.board.isCheckmate()) {
+                if (nextNode.board.isCheckmate()) {
                     nextNode.qValue = 0;
                     maxQ = 1;
+                    bestActionObject = giveMoveObject;
+                    this.childrenDict[giveMoveObject.id] = nextNode
+
                     break;
                 }
                 else {

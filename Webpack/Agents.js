@@ -172,9 +172,6 @@ class MCTSAgent extends Agent{
         var activeNode = searchRoot
 
         var expansionNeeded = true;
-        var foundWin = false;
-        var foundLoss = false;
-        var foundDraw = false;
 
         // Selection
         while (activeNode.fullyExplored()) {
@@ -207,18 +204,6 @@ class MCTSAgent extends Agent{
             foundValue = activeNode.expand(this.WorB)
         }
 
-        else if (foundDraw) {
-            console.log("Found Draw")
-        }
-
-        else if (foundWin) {
-            console.log("Found Win")
-        }
-
-        else if (foundLoss) {
-            console.log("Found Loss")
-        }
-
         var valueToAgent = 0
         var valueToPlayer = 0
 
@@ -232,10 +217,6 @@ class MCTSAgent extends Agent{
             valueToPlayer = foundValue;
         }
         
-        if (foundLoss) {
-            console.log("PATH: " + path.length)
-        }
-
         // Backprop
         // console.log("")
 
@@ -256,10 +237,6 @@ class MCTSAgent extends Agent{
 
                 if (pathNode.matchesAgentColor(this.WorB)) {
                     keyValue = valueToAgent;
-                }
-
-                if (keyValue === 0 || keyValue === 1) {
-                    console.log(keyValue + " <")
                 }
 
                 if (keyValue > pathNode.qValue) {
