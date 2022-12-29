@@ -114,7 +114,7 @@ class Node {
 
     // Multi-arm bandit
     // Assumes that the node is expanded
-    getNext() {
+    bandit() {
 
         if (Object.keys(this.childrenDict).length != this.moves.length) {
             console.log("MISTAKE! node requesting next without being expanded first")
@@ -123,12 +123,11 @@ class Node {
 
         // EPSILON
         var eps = Math.random()
-        var THRESHHOLD = 0.2
+        var THRESHHOLD = 0.1
 
         var givenMoveObject = null;
 
         if (eps < THRESHHOLD || this.bestMoveObject === null) {
-            // givenMoveObject = this.moveObjects[0]
             givenMoveObject = this.moveObjects[Math.floor(Math.random() * this.moveObjects.length)]
         }
 
@@ -137,7 +136,6 @@ class Node {
         }
         
         return this.childrenDict[givenMoveObject.id]
-
     }
 
     expand(AgentWorB) {
@@ -146,6 +144,16 @@ class Node {
 
         var maxQ = -2;
         var bestActionObject = null;
+
+        if (this.hasNoMoves()) {
+            if (this.board.isCheckmate()) {
+                maxQ = 0;
+                console.log("Checkmate")
+            }
+            else {
+                maxQ = 0.5;
+            }
+        }
 
         for (let i = 0; i < this.moves.length; i++){
             var givenMove = this.moves[i]
@@ -158,6 +166,18 @@ class Node {
 
             // var nextNode = new Node(nextState, this, nextMoves, !this.WorB, givenMove, this.getOppColor(this.ownerColor))
             var nextNode = new Node(nextState, this, nextMoves, !this.WorB, givenMove, true)
+
+            if (nextNode.hasNoMoves()) {
+                console.log("Opponent checkmate")
+                if (this.board.isCheckmate()) {
+                    nextNode.qValue = 0;
+                    maxQ = 1;
+                    break;
+                }
+                else {
+                    nextNode.qValue = 0.5;
+                }
+            }
 
             // Since the next node is always an opponent,
             //      it has opposite evaluation, (0.2 vs 0.8 for same board)

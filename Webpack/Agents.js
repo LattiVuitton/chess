@@ -148,12 +148,28 @@ class MCTSAgent extends Agent{
         return false
     }
 
-    improveTree() {
+    offlineImproveTree() {
+        // var tempRoot = null;
+        // while (tempRoot)
+        // this.improveTree(this.playerBoardState.bandit())
+    }
+
+    improveTree(givenRoot) {
+
+        var searchRoot = null;
+
+        if (givenRoot === undefined) {
+            searchRoot = this.rootNode
+        }
+
+        else {
+            searchRoot = givenRoot
+        }
 
         console.log("Improving tree")
 
-        var path = [this.rootNode]
-        var activeNode = this.rootNode
+        var path = [searchRoot]
+        var activeNode = searchRoot
 
         var expansionNeeded = true;
         var foundWin = false;
@@ -165,17 +181,6 @@ class MCTSAgent extends Agent{
 
             if (activeNode.hasNoMoves()) {
                 expansionNeeded = false;
-                if (activeNode.board.isCheckmate()) {
-                    if (activeNode.color === this.WorB) {
-                        foundWin = true;
-                    }
-                    else {
-                        foundLoss = true;
-                    }
-                }
-                else {
-                    foundDraw = true  
-                }
                 break;
             }
 
@@ -184,7 +189,7 @@ class MCTSAgent extends Agent{
                 break;
             }
 
-            activeNode = activeNode.getNext()
+            activeNode = activeNode.bandit()
             path.push(activeNode)
 
             // // Adding to total visitations
@@ -203,17 +208,14 @@ class MCTSAgent extends Agent{
         }
 
         else if (foundDraw) {
-            foundValue = 0.5
             console.log("Found Draw")
         }
 
         else if (foundWin) {
-            foundValue = 1
             console.log("Found Win")
         }
 
         else if (foundLoss) {
-            foundValue = 0
             console.log("Found Loss")
         }
 
@@ -256,8 +258,12 @@ class MCTSAgent extends Agent{
                     keyValue = valueToAgent;
                 }
 
+                if (keyValue === 0 || keyValue === 1) {
+                    console.log(keyValue + " <")
+                }
+
                 if (keyValue > pathNode.qValue) {
-                    if (j === 0) {
+                    if (j === 1) {
                         console.log("Useful")
                     }
                     pathNode.bestMoveObject = path[j+1].actionObject
@@ -301,7 +307,7 @@ class MCTSAgent extends Agent{
         this.turn++
 
         // Time loop
-        const timeLimit = 0
+        const timeLimit = 1
         const timeLimitSeconds = timeLimit * 1000
         const start = Date.now()
         while (Date.now() - start < timeLimitSeconds) {
@@ -344,7 +350,6 @@ class MCTSAgent extends Agent{
 
         // Board state being left to player
         this.playerBoardState = playerState;
-        // this.rootNode = playerState;
         
         // Best move after Q-value analysis
         // console.log(round(bestQ,4))
