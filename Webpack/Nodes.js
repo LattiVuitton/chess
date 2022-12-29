@@ -3,7 +3,12 @@ const eval = require('./Evaluation');
 
 function round(value, decimals) {
     return Number(Math.round(value+'e'+decimals)+'e-'+decimals);
-  }
+}
+
+function invertEval(original) {
+    if (original >= 0 && original <= 1) return 1 - original
+    return null
+}
 
 var nodeID = -1
 var moveID = -1
@@ -29,18 +34,17 @@ class Node {
 
     updateNodeValue(newValue) {
         this.bestMoveValue = newValue;
-        if (round(newValue, 4) === 0.5275) {
-            console.log("\n-----------------------------------------------------------------\n")
-            console.log("Setting node " + this.id + " to " + round(newValue, 4))
-            console.log(this.action)
-            console.log("Is it expanded? " + this.fullyExplored())
-            if (this.fullyExplored()) {
-                console.log(this.bestMoveObject)
-                console.log(this.moves)
-                console.log(this.childrenDict)
-            }
-
-        }
+        // if (round(newValue, 4) === 0.5275) {
+        //     console.log("\n-----------------------------------------------------------------\n")
+        //     console.log("Setting node " + this.id + " to " + round(newValue, 4))
+        //     console.log(this.action)
+        //     console.log("Is it expanded? " + this.fullyExplored())
+        //     if (this.fullyExplored()) {
+        //         console.log(this.bestMoveObject)
+        //         console.log(this.moves)
+        //         console.log(this.childrenDict)
+        //     }
+        // }
     }
 
     constructor(board, parent, moves, WorB, action, isComp) {
@@ -172,8 +176,7 @@ class Node {
 
         // console.log("\nExpanding: " + this.id)
 
-        var minQ = 100;
-        var maxQ = -1;
+        var maxQ = -2;
         var bestActionObject = null;
         // console.log("\nStart")
         for (let i = 0; i < this.moves.length; i++){
@@ -188,39 +191,22 @@ class Node {
             // var nextNode = new Node(nextState, this, nextMoves, !this.WorB, givenMove, this.getOppColor(this.ownerColor))
             var nextNode = new Node(nextState, this, nextMoves, !this.WorB, givenMove, true)
 
-            // console.log("Move: " + nextNode.action.to + ", Q: " + round(nextNode.qValue, 4))
-
-            if (this.matchesAgentColor(AgentWorB)) {
-
-                if (nextNode.qValue < minQ) {
-                    // console.log("Replacing " + minQ + " with " + nextNode.qValue)
-                    minQ = nextNode.qValue
-                    bestActionObject = giveMoveObject;
-                }
-            }
-            else {
-                if (nextNode.qValue > maxQ) {
-                    // console.log("Replacing (max)" + maxQ + " with " + nextNode.qValue)
+            // Since the next node is always an opponent,
+            //      it has opposite evaluation, (0.2 vs 0.8 for same board)
+            if (invertEval(nextNode.qValue) > maxQ) {
                     maxQ = nextNode.qValue
+                    console.log("zara: " + maxQ)
+
                     bestActionObject = giveMoveObject;
                 }
-            }
+
             this.childrenDict[giveMoveObject.id] = nextNode
         }
-        // console.log("")
 
         // Updating best move from this node and value achieved
         this.bestMoveObject = bestActionObject;
 
-        if (this.matchesAgentColor(AgentWorB)) {
-            // console.log("MIN MIN MIN MIN MIN MIN MIN MIN MIN MIN MIN MIN MIN MIN MIN MIN MIN")
-
-            this.updateNodeValue(minQ)
-            // this.bestMoveValue = minQ;
-            return minQ;
-        }
-        // console.log("MAX MAX MAX MAX MAX MAX MAX MAX MAX MAX MAX MAX MAX MAX MAX")
-
+        // Updating node value
         this.updateNodeValue(maxQ)
 
         // this.bestMoveValue = maxQ;
