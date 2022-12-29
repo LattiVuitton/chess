@@ -4,7 +4,12 @@ const nodes = require('./Nodes');
 
 function round(value, decimals) {
     return Number(Math.round(value+'e'+decimals)+'e-'+decimals);
-  }
+}
+  
+function invertEval(original) {
+    if (original >= 0 && original <= 1) return 1 - original
+    return null
+}
 
 class Agent{
     constructor(id, WorB) {
@@ -145,7 +150,7 @@ class MCTSAgent extends Agent{
 
     improveTree() {
 
-        // console.log("Improving tree")
+        console.log("Improving tree")
 
         var path = [this.rootNode]
         var activeNode = this.rootNode
@@ -186,7 +191,6 @@ class MCTSAgent extends Agent{
             // if (!this.nodeVisited(activeNode.id)) {
             //     this.allExpandedNodes.push(activeNode.id)
             // }
-
         }
 
         // console.log("Path Length: " + path.length)
@@ -196,7 +200,6 @@ class MCTSAgent extends Agent{
         // Expansion
         if (expansionNeeded) {
             foundValue = activeNode.expand(this.WorB)
-            
         }
 
         else if (foundDraw) {
@@ -214,97 +217,56 @@ class MCTSAgent extends Agent{
             console.log("Found Loss")
         }
 
-        // Either min or max
-        var childNodeValue = foundValue
-        if (foundValue > 0.7) {
-            // console.log("werc: " + foundValue)
+        var valueToAgent = 0
+        var valueToPlayer = 0
+
+        if (activeNode.matchesAgentColor(this.WorB)) {
+            valueToPlayer = invertEval(foundValue);
+            valueToAgent = foundValue;
         }
 
+        else {
+            valueToAgent = invertEval(foundValue);
+            valueToPlayer = foundValue;
+        }
+        
         if (foundLoss) {
             console.log("PATH: " + path.length)
         }
 
         // Backprop
-        
-        // 
+        // console.log("")
+
+        // For all nodes except last node in path
         for (let j = path.length - 2; j >= 0; j--) {
+
             var pathNode = path[j]
             pathNode.visits++
-
-            // console.log(pathNode.visits)
 
             // If node is unexpanded (no children)
             if (!expansionNeeded && j === path.length) {
                 console.log("No backprop here")
             }
 
-            // Last node in path does not need backprop
-            else if (path.length > 1) {
+            else {
 
-                if (j === 0) {
-                    // console.log("Best moves: " + pathNode.bestMoveObject)
-                    // console.log(pathNode.id)
-                }
+                var keyValue = valueToPlayer;
 
                 if (pathNode.matchesAgentColor(this.WorB)) {
+                    keyValue = valueToAgent;
+                }
 
-                    if (childNodeValue >= pathNode.qValue) {
-
-                        // if (j === 0) {
-                            // console.log("Updating from " + pathNode.bestMoveObject.move.to + " to " + 
-                            //     path[j + 1].actionObject.move.to + " with q: " + round(childNodeValue, 4) + " (ID: "
-                            // + pathNode.id + ")")
-                        //     // console.log(pathNode.bestMoveObject)
-                        //     // console.log(path[j + 1].actionObject)
-                        // }
-
-                        // console.log("From backprop1")
-                        pathNode.bestMoveObject = path[j + 1].actionObject
-
-                        pathNode.updateNodeValue(childNodeValue)
-
-                        // pathNode.qValue = childNodeValue;
-
-                        // console.log("")
-                        // console.log(path)
-                        // console.log(j + " <> " + path.length)
-                        // console.log(path[j+1])
-
-                        // for (let i = 0; i <  Object.keys(this.rootNode.moveObjects).length; i++){
-                        //     if (pathNode.id === this.rootNode.childrenDict[this.rootNode.moveObjects[i].id].id) {
-                        //         console.log("Useful update")
-                        //     }
-                        // }
+                if (keyValue > pathNode.qValue) {
+                    if (j === 0) {
+                        console.log("Useful")
                     }
-
-                    else {
-                        break;
-                    }
+                    pathNode.bestMoveObject = path[j+1].actionObject
+                    pathNode.updateNodeValue(keyValue)
                 }
 
                 else {
-                    if (childNodeValue <= pathNode.qValue) {
-
-                    //     console.log("Updating from " + pathNode.bestMoveObject.move.to + " to " +
-                    //     path[j + 1].actionObject.move.to + " with q: " + round(childNodeValue, 4) + " (ID: "
-                    // + pathNode.id + ")")
-
-                        // console.log("From backprop2")
-                        pathNode.bestMoveObject = path[j+1].actionObject
-
-                        pathNode.updateNodeValue(childNodeValue)
-                        // pathNode.qValue = childNodeValue;
-
-                        // // UPDATE NEEDED FOR UPDATING BEST MOVE
-                        // console.log("Replace 2, visits: " + pathNode.visits)
-                        // console.log("ID: " + pathNode.id)
-                    }
-                    else {
-                        break;
-                    }
+                    break;
                 }
-                //  = ((path[j].qValue * path[j].visits) + foundValue) / (path[j].visits + 1)
-                // path[j].visits++
             }
         }
     }
@@ -339,7 +301,7 @@ class MCTSAgent extends Agent{
         this.turn++
 
         // Time loop
-        const timeLimit = 1
+        const timeLimit = 0
         const timeLimitSeconds = timeLimit * 1000
         const start = Date.now()
         while (Date.now() - start < timeLimitSeconds) {
@@ -353,8 +315,6 @@ class MCTSAgent extends Agent{
         // For clean code
         var dictLen = Object.keys(this.rootNode.moveObjects).length
 
-        console.log("")
-
         for (let i = 0; i < dictLen; i++) {
             var moveObject = this.rootNode.moveObjects[i]
 
@@ -362,18 +322,12 @@ class MCTSAgent extends Agent{
             // console.log(moveObject.move.to + " <> " + opponentNode.qValue)
 
             console.log("\nMove: " + moveObject.move.to)
-            console.log("Value: " + round(opponentNode.qValue, 4))
+            console.log("Value: " + round(invertEval(opponentNode.qValue), 4))
             console.log("Visits: " + opponentNode.visits)
 
-
-            if (opponentNode.qValue > bestQ) {
-                var PRINTING = "Null"
-                if (bestMove != null) {
-                    PRINTING = bestMove.to
-                }
-                // console.log("Updating FROM " + PRINTING + " to " + moveObject.move.to)
+            if (invertEval(opponentNode.qValue) > bestQ) {
                 bestMove = moveObject.move;
-                bestQ = opponentNode.qValue;
+                bestQ = invertEval(opponentNode.qValue);
                 playerState = opponentNode;
             }
         }
