@@ -154,7 +154,7 @@ class MCTSAgent extends Agent{
         var foundWin = false;
         var foundLoss = false;
         var foundDraw = false;
-        
+
         // Selection
         while (activeNode.fullyExplored()) {
 
@@ -182,10 +182,11 @@ class MCTSAgent extends Agent{
             activeNode = activeNode.getNext()
             path.push(activeNode)
 
-            // Adding to total visitations
-            if (!this.nodeVisited(activeNode.id)) {
-                this.allExpandedNodes.push(activeNode.id)
-            }
+            // // Adding to total visitations
+            // if (!this.nodeVisited(activeNode.id)) {
+            //     this.allExpandedNodes.push(activeNode.id)
+            // }
+
         }
 
         // console.log("Path Length: " + path.length)
@@ -257,14 +258,17 @@ class MCTSAgent extends Agent{
                         //     // console.log(path[j + 1].actionObject)
                         // }
 
+                        // console.log("From backprop1")
+                        pathNode.bestMoveObject = path[j + 1].actionObject
 
-                        pathNode.bestMoveValue = childNodeValue;
+                        pathNode.updateNodeValue(childNodeValue)
+
+                        // pathNode.bestMoveValue = childNodeValue;
 
                         // console.log("")
                         // console.log(path)
                         // console.log(j + " <> " + path.length)
                         // console.log(path[j+1])
-                        pathNode.bestMoveObject = path[j + 1].actionObject
 
                         // for (let i = 0; i <  Object.keys(this.rootNode.moveObjects).length; i++){
                         //     if (pathNode.id === this.rootNode.childrenDict[this.rootNode.moveObjects[i].id].id) {
@@ -281,12 +285,15 @@ class MCTSAgent extends Agent{
                 else {
                     if (childNodeValue <= pathNode.bestMoveValue) {
 
-                    //     console.log("Updating from " + pathNode.bestMoveObject.move.to + " to " + 
+                    //     console.log("Updating from " + pathNode.bestMoveObject.move.to + " to " +
                     //     path[j + 1].actionObject.move.to + " with q: " + round(childNodeValue, 4) + " (ID: "
                     // + pathNode.id + ")")
 
-                        pathNode.bestMoveValue = childNodeValue;
+                        // console.log("From backprop2")
                         pathNode.bestMoveObject = path[j+1].actionObject
+
+                        pathNode.updateNodeValue(childNodeValue)
+                        // pathNode.bestMoveValue = childNodeValue;
 
                         // // UPDATE NEEDED FOR UPDATING BEST MOVE
                         // console.log("Replace 2, visits: " + pathNode.visits)
@@ -325,7 +332,7 @@ class MCTSAgent extends Agent{
 
         // Root node returned is faulty OR couldnt retrieve root
         if (this.rootNode === null || !foundRootNode) {
-            this.rootNode = nodes.getNewNode(board, null, board.moves({ verbose: true }), this.WorB, null)
+            this.rootNode = nodes.getNewRoot(board, null, board.moves({ verbose: true }), this.WorB, null)
             console.log("Couldnt retrieve, giving new: " + this.rootNode.id)
         }
 
@@ -354,9 +361,9 @@ class MCTSAgent extends Agent{
             var opponentNode = this.rootNode.childrenDict[moveObject.id]
             // console.log(moveObject.move.to + " <> " + opponentNode.qValue)
 
-            // console.log("\nMove: " + moveObject.move.to)
-            // console.log("Value: " + round(opponentNode.bestMoveValue, 4))
-            // console.log("Visits: " + opponentNode.visits)
+            console.log("\nMove: " + moveObject.move.to)
+            console.log("Value: " + round(opponentNode.bestMoveValue, 4))
+            console.log("Visits: " + opponentNode.visits)
 
 
             if (opponentNode.bestMoveValue > bestQ) {
@@ -364,7 +371,7 @@ class MCTSAgent extends Agent{
                 if (bestMove != null) {
                     PRINTING = bestMove.to
                 }
-                console.log("Updating FROM " + PRINTING + " to " + moveObject.move.to)
+                // console.log("Updating FROM " + PRINTING + " to " + moveObject.move.to)
                 bestMove = moveObject.move;
                 bestQ = opponentNode.bestMoveValue;
                 playerState = opponentNode;
