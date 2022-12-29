@@ -9,13 +9,13 @@ var nodeID = -1
 var moveID = -1
 
 function getID() {
-    nodeID += 1
+    nodeID++
     return nodeID
 }
 
 function getMoveID() {
-    nodeID += 1
-    return nodeID
+    moveID++
+    return moveID
 }
 
 class MoveObject {
@@ -144,7 +144,7 @@ class Node {
         }
 
         else {
-            console.log("Completed node with id: " + this.id)
+            // console.log("Completed node with id: " + this.id)
             // console.log("Moves: ")
             // console.log(this.moves)
 
@@ -160,8 +160,8 @@ class Node {
         }
 
         // console.log(this.childrenDict[givenMoveObject.id])
-        console.log(this.childrenDict[givenMoveObject.id].action.to + " <> " + round(this.childrenDict[givenMoveObject.id].qValue, 4)
-        + " (" + this.id + ")")
+        // console.log(this.childrenDict[givenMoveObject.id].action.to + " <> " + round(this.childrenDict[givenMoveObject.id].qValue, 4)
+        // + " (" + this.id + ")")
         return this.childrenDict[givenMoveObject.id]
 
     }
@@ -170,7 +170,7 @@ class Node {
     // OR qValue of worst node if isOpponent
     expand(AgentWorB) {
 
-        console.log("\nExpanding: " + this.id)
+        // console.log("\nExpanding: " + this.id)
 
         var minQ = 100;
         var maxQ = -1;
@@ -186,7 +186,7 @@ class Node {
             var nextMoves = nextState.moves({ verbose: true })
 
             // var nextNode = new Node(nextState, this, nextMoves, !this.WorB, givenMove, this.getOppColor(this.ownerColor))
-            var nextNode = new Node(nextState, this, nextMoves, !this.WorB, givenMove, this.ownerColor)
+            var nextNode = new Node(nextState, this, nextMoves, !this.WorB, givenMove, true)
 
             // console.log("Move: " + nextNode.action.to + ", Q: " + round(nextNode.qValue, 4))
 
@@ -228,13 +228,13 @@ class Node {
     }
 }
 
-exports.getNewNode = function getNode(board, parent, moves, WorB, action) {
+exports.getNewRoot = function getNode(board, parent, moves, WorB, action) {
 
     var ownedColor = 'b'
     if (WorB) {
         ownedColor = 'w'
     }
 
-    var node = new Node(board, parent, moves, WorB, action, ownedColor)
+    var node = new Node(board, parent, moves, WorB, action, true)
     return node
 }
