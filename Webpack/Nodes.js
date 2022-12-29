@@ -30,6 +30,7 @@ class Node {
 
         // Visits are only counted during backpropagation
         this.visits = 1;
+        this.nextMoveIndex = 0;
         this.id = getID();
         this.board = board;
         this.parent = parent;
@@ -113,26 +114,32 @@ class Node {
 
         var THRESHHOLD = 0.2
 
-        if (this.visits < this.moves.length && false) {
-            THRESHHOLD = 1;
-        }
-
-        else {
-            // console.log("Setting low")
-            THRESHHOLD = 0.2
-        }
-
         var givenMoveObject = null;
 
-        if (eps < THRESHHOLD || this.bestMoveObject === null) {
-            givenMoveObject = this.moveObjects[Math.floor(Math.random() * this.moveObjects.length)]
-            console.log("Giving move: " + givenMoveObject.move.to + " () " + givenMoveObject.move.color)
+        if (this.nextMoveIndex <= this.moves.length - 1) {
+            givenMoveObject = this.moveObjects[this.nextMoveIndex]
+            this.nextMoveIndex++
         }
 
         else {
-            givenMoveObject = this.bestMoveObject
+            console.log("This node id: " + this.id)
+            // console.log("Moves: ")
+            // console.log(this.moves)
+
+            // console.log("here")
+            if (eps < THRESHHOLD || this.bestMoveObject === null) {
+                givenMoveObject = this.moveObjects[Math.floor(Math.random() * this.moveObjects.length)]
+                // console.log("Giving move: " + givenMoveObject.move.to + " () " + givenMoveObject.move.color)
+            }
+    
+            else {
+                givenMoveObject = this.bestMoveObject
+            }
         }
 
+        // console.log(this.childrenDict[givenMoveObject.id])
+        console.log(this.childrenDict[givenMoveObject.id].action.to + " <> " + round(this.childrenDict[givenMoveObject.id].qValue, 4)
+        + " (" + this.id + ")")
         return this.childrenDict[givenMoveObject.id]
 
     }
@@ -141,7 +148,7 @@ class Node {
     // OR qValue of worst node if isOpponent
     expand(AgentWorB) {
 
-        console.log("\nExpanding: " + this.id)
+        // console.log("\nExpanding: " + this.id)
 
         var minQ = 100;
         var maxQ = -1;
@@ -176,7 +183,7 @@ class Node {
             }
             this.childrenDict[giveMoveObject.id] = nextNode
         }
-        console.log("")
+        // console.log("")
 
         // Updating best move from this node and value achieved
         this.bestMoveObject = bestActionObject;
