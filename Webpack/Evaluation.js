@@ -11,7 +11,7 @@ const pieceValues = {
 exports.evaluateBoard = function evaluate(game) {
 
     // Evaluation
-    return count
+    return -2
 }
 
 var highest = 0
