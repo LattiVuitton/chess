@@ -33,18 +33,7 @@ class MoveObject {
 class Node {
 
     updateNodeValue(newValue) {
-        this.bestMoveValue = newValue;
-        // if (round(newValue, 4) === 0.5275) {
-        //     console.log("\n-----------------------------------------------------------------\n")
-        //     console.log("Setting node " + this.id + " to " + round(newValue, 4))
-        //     console.log(this.action)
-        //     console.log("Is it expanded? " + this.fullyExplored())
-        //     if (this.fullyExplored()) {
-        //         console.log(this.bestMoveObject)
-        //         console.log(this.moves)
-        //         console.log(this.childrenDict)
-        //     }
-        // }
+        this.qValue = newValue;
     }
 
     constructor(board, parent, moves, WorB, action, isComp) {
@@ -70,25 +59,22 @@ class Node {
         // Evaluation is relative to the colour of the node.
         // E.g. black node with high black piece count has q > 0.5,
         //      irrespective of whether the node is a human or not.
-        this.qValue = eval.pieceValue(this.board, this.ownerColor);
+        var tempQ = eval.pieceValue(this.board, this.ownerColor);
+
+        // this.bestMoveValue = this.qValue;
+        // console.log("From node creation")
+        this.updateNodeValue(tempQ)
 
         // Used in backpropagation
         this.actionObject = null
         if (parent != null) {
             for (let i = 0; i < parent.moveObjects.length; i++){
-                // console.log(parent.moveObjects[i].move)
-                // console.log(parent.moves[i])
-                // console.log("\n")
                 if (parent.moves[i] === action) {
                     this.actionObject = parent.moveObjects[i]
                     break;
                 }
             }
         }
-        // this.bestMoveValue = this.qValue;
-        // console.log("From node creation")
-        this.updateNodeValue(this.qValue)
-
     }
 
     fullyExplored() {
@@ -142,7 +128,7 @@ class Node {
 
         var givenMoveObject = null;
 
-        if (this.nextMoveIndex <= this.moves.length - 1) {
+        if (this.nextMoveIndex <= this.moves.length - 1 && false) {
             givenMoveObject = this.moveObjects[this.nextMoveIndex]
             this.nextMoveIndex++
         }
@@ -153,7 +139,7 @@ class Node {
             // console.log(this.moves)
 
             // console.log("here")
-            if (eps < THRESHHOLD || this.bestMoveObject === null) {
+            if (eps < THRESHHOLD || this.bestMoveObject === null || true) {
                 givenMoveObject = this.moveObjects[Math.floor(Math.random() * this.moveObjects.length)]
                 // console.log("Giving move: " + givenMoveObject.move.to + " () " + givenMoveObject.move.color)
             }
@@ -195,8 +181,6 @@ class Node {
             //      it has opposite evaluation, (0.2 vs 0.8 for same board)
             if (invertEval(nextNode.qValue) > maxQ) {
                     maxQ = nextNode.qValue
-                    console.log("zara: " + maxQ)
-
                     bestActionObject = giveMoveObject;
                 }
 
@@ -209,7 +193,7 @@ class Node {
         // Updating node value
         this.updateNodeValue(maxQ)
 
-        // this.bestMoveValue = maxQ;
+        // For use in backprop
         return maxQ;
     }
 }

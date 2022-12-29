@@ -224,9 +224,9 @@ class MCTSAgent extends Agent{
             console.log("PATH: " + path.length)
         }
 
-        // console.log(path)
-
         // Backprop
+        
+        // 
         for (let j = path.length - 2; j >= 0; j--) {
             var pathNode = path[j]
             pathNode.visits++
@@ -248,7 +248,7 @@ class MCTSAgent extends Agent{
 
                 if (pathNode.matchesAgentColor(this.WorB)) {
 
-                    if (childNodeValue >= pathNode.bestMoveValue) {
+                    if (childNodeValue >= pathNode.qValue) {
 
                         // if (j === 0) {
                             // console.log("Updating from " + pathNode.bestMoveObject.move.to + " to " + 
@@ -263,7 +263,7 @@ class MCTSAgent extends Agent{
 
                         pathNode.updateNodeValue(childNodeValue)
 
-                        // pathNode.bestMoveValue = childNodeValue;
+                        // pathNode.qValue = childNodeValue;
 
                         // console.log("")
                         // console.log(path)
@@ -283,7 +283,7 @@ class MCTSAgent extends Agent{
                 }
 
                 else {
-                    if (childNodeValue <= pathNode.bestMoveValue) {
+                    if (childNodeValue <= pathNode.qValue) {
 
                     //     console.log("Updating from " + pathNode.bestMoveObject.move.to + " to " +
                     //     path[j + 1].actionObject.move.to + " with q: " + round(childNodeValue, 4) + " (ID: "
@@ -293,7 +293,7 @@ class MCTSAgent extends Agent{
                         pathNode.bestMoveObject = path[j+1].actionObject
 
                         pathNode.updateNodeValue(childNodeValue)
-                        // pathNode.bestMoveValue = childNodeValue;
+                        // pathNode.qValue = childNodeValue;
 
                         // // UPDATE NEEDED FOR UPDATING BEST MOVE
                         // console.log("Replace 2, visits: " + pathNode.visits)
@@ -362,18 +362,18 @@ class MCTSAgent extends Agent{
             // console.log(moveObject.move.to + " <> " + opponentNode.qValue)
 
             console.log("\nMove: " + moveObject.move.to)
-            console.log("Value: " + round(opponentNode.bestMoveValue, 4))
+            console.log("Value: " + round(opponentNode.qValue, 4))
             console.log("Visits: " + opponentNode.visits)
 
 
-            if (opponentNode.bestMoveValue > bestQ) {
+            if (opponentNode.qValue > bestQ) {
                 var PRINTING = "Null"
                 if (bestMove != null) {
                     PRINTING = bestMove.to
                 }
                 // console.log("Updating FROM " + PRINTING + " to " + moveObject.move.to)
                 bestMove = moveObject.move;
-                bestQ = opponentNode.bestMoveValue;
+                bestQ = opponentNode.qValue;
                 playerState = opponentNode;
             }
         }
