@@ -34,10 +34,11 @@ exports.pieceValue = function countPieces(game, nodeColor) {
     var myScore = 0
     var oppScore = 0
 
-    myColor = 'b'
-    if (nodeColor === 'b') {
-        myColor = 'w'
-    }
+    // myColor = 'b'
+    // if (nodeColor === 'b') {
+    //     myColor = 'w'
+    // }
+    var myColor = nodeColor
 
     var tilesList = []
     for (let i = 0; i < letters.length; i++){
@@ -56,6 +57,6 @@ exports.pieceValue = function countPieces(game, nodeColor) {
             }
         }
     }
-
+    // console.log(nodeColor + ": " + (myScore + Number.EPSILON) / (myScore + oppScore + Number.EPSILON))
     return (myScore + Number.EPSILON) / (myScore + oppScore + Number.EPSILON)
 }

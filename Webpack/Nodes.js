@@ -123,48 +123,30 @@ class Node {
 
         // EPSILON
         var eps = Math.random()
-
         var THRESHHOLD = 0.2
 
         var givenMoveObject = null;
 
-        if (this.nextMoveIndex <= this.moves.length - 1 && false) {
-            givenMoveObject = this.moveObjects[this.nextMoveIndex]
-            this.nextMoveIndex++
+        if (eps < THRESHHOLD || this.bestMoveObject === null) {
+            // givenMoveObject = this.moveObjects[0]
+            givenMoveObject = this.moveObjects[Math.floor(Math.random() * this.moveObjects.length)]
         }
 
         else {
-            // console.log("Completed node with id: " + this.id)
-            // console.log("Moves: ")
-            // console.log(this.moves)
-
-            // console.log("here")
-            if (eps < THRESHHOLD || this.bestMoveObject === null || true) {
-                givenMoveObject = this.moveObjects[Math.floor(Math.random() * this.moveObjects.length)]
-                // console.log("Giving move: " + givenMoveObject.move.to + " () " + givenMoveObject.move.color)
-            }
-    
-            else {
-                givenMoveObject = this.bestMoveObject
-            }
+            givenMoveObject = this.bestMoveObject
         }
-
-        // console.log(this.childrenDict[givenMoveObject.id])
-        // console.log(this.childrenDict[givenMoveObject.id].action.to + " <> " + round(this.childrenDict[givenMoveObject.id].qValue, 4)
-        // + " (" + this.id + ")")
+        
         return this.childrenDict[givenMoveObject.id]
 
     }
 
-    // Returns the qValue of best node
-    // OR qValue of worst node if isOpponent
     expand(AgentWorB) {
 
         // console.log("\nExpanding: " + this.id)
 
         var maxQ = -2;
         var bestActionObject = null;
-        // console.log("\nStart")
+
         for (let i = 0; i < this.moves.length; i++){
             var givenMove = this.moves[i]
             var giveMoveObject = new MoveObject(givenMove);
@@ -180,7 +162,7 @@ class Node {
             // Since the next node is always an opponent,
             //      it has opposite evaluation, (0.2 vs 0.8 for same board)
             if (invertEval(nextNode.qValue) > maxQ) {
-                    maxQ = nextNode.qValue
+                    maxQ = invertEval(nextNode.qValue)
                     bestActionObject = giveMoveObject;
                 }
 
