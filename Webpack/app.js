@@ -71,7 +71,6 @@ function onDrop(source, target) {
         piece = game.get(source);
         if (piece.type === 'p') {
             promoting = true;
-            console.log("zara")
             newMove = game.move({
                 from: source,
                 to: target,
@@ -345,7 +344,7 @@ function update() {
 
     else if (gameActive && opponent.offlineTreeBuilding && treeBuildingAllowed){
         // console.log("Waiting for player")
-        // opponent.improveTree()
+        opponent.improveTree()
     }
 }
 
