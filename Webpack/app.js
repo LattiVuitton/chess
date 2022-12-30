@@ -126,6 +126,7 @@ var WorB = true;
 
 var simulateButton = document.getElementById("CompVComp");
 var colorButton = document.getElementById("colorButton");
+var resetButton = document.getElementById("resetButton")
 
 simulateButton.addEventListener("click", function () {
     simulateGame()
@@ -135,25 +136,47 @@ colorButton.addEventListener("click", function () {
     swapColor()
 }, false);
 
+resetButton.addEventListener("click", function () {
+    resetGame()
+}, false);
+
+function resetGame(){
+    console.log("resetting")
+    game = new chess.Chess()
+    board.position(game.fen())
+}
+
 // Agent listeners --------------------------- start
 var randomAgent = document.getElementById("randomAgent");
 var heuristicAgent = document.getElementById("heuristicAgent");
 var MCTSAgent = document.getElementById("MCTSAgent");
 
-randomAgent.addEventListener("click", function () {
-    changeAgent("random")
-}, false);
-
-heuristicAgent.addEventListener("click", function () {
-    changeAgent("heuristic")
-}, false);
-
-MCTSAgent.addEventListener("click", function () {
-    changeAgent("MCTS")
-}, false);
+randomAgent.addEventListener("click", function () {changeAgent("random")}, false);
+heuristicAgent.addEventListener("click", function () {changeAgent("heuristic")}, false);
+MCTSAgent.addEventListener("click", function () {changeAgent("MCTS")}, false);
 
 // Auto set MCTS
 changeAgent("MCTS")
+
+var changeTime05 = document.getElementById("changeTo05");
+var changeTime1 = document.getElementById("changeTo1");
+var changeTime2 = document.getElementById("changeTo2");
+var changeTime3 = document.getElementById("changeTo3");
+var changeTime5 = document.getElementById("changeTo5");
+
+function changeTime(timeLimit) {
+    if (opponent != null) {
+        if (opponent.hasTimeLimit) {
+            opponent.setTimeLimit(timeLimit)
+        }
+    }
+}
+
+changeTime05.addEventListener("click", function () { changeTime(0.5)}, false)
+changeTime1.addEventListener("click", function () { changeTime(1)}, false)
+changeTime2.addEventListener("click", function () { changeTime(2)}, false)
+changeTime3.addEventListener("click", function () { changeTime(3)}, false)
+changeTime5.addEventListener("click", function () { changeTime(5)}, false)
 
 function changeAgent(agentName) {
     if (!gameActive) {
@@ -328,6 +351,8 @@ window.onload = function() {
 
 var marker = 0
 function update() {
+    // console.log(Date.now())
+
     if (waitingForComputer) {
         if (marker < 10) {
             marker++
@@ -343,9 +368,9 @@ function update() {
     }
 
     else if (gameActive && opponent.offlineTreeBuilding && treeBuildingAllowed){
-        // console.log("Waiting for player")
         opponent.offlineImproveTree()
     }
+
 }
 
 var gameActive = false
