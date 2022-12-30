@@ -121,26 +121,12 @@ class Node {
             return null
         }
 
-        // // EPSILON
-        // var eps = Math.random()
-        // var THRESHHOLD = 0.1
-
-        // var givenMoveObject = null;
-
-        // if (eps < THRESHHOLD || this.bestMoveObject === null) {
-        //     givenMoveObject = this.moveObjects[Math.floor(Math.random() * this.moveObjects.length)]
-        // }
-
-        // else {
-        //     givenMoveObject = this.bestMoveObject
-        // }
-        
         // UCB
         var bestA = -1
         var bestAction = null;
 
         var t = this.visits
-        var c = 0.3;
+        var c = 0.1;
 
         for (let i = 0; i < this.moveObjects.length; i++){
             var actionCheck = this.moveObjects[i];
