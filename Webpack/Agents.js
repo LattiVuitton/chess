@@ -18,6 +18,7 @@ class Agent{
         this.requiresVerbose = true
         this.requiresLastPlayerMove = false;
         this.offlineTreeBuilding = false;
+        this.hasTimeLimit = false;
     }
 
     // moves can either be only names, or full move object array
@@ -123,6 +124,8 @@ class MCTSAgent extends Agent{
         this.allExpandedNodes = []
         this.requiresLastPlayerMove = true;
         this.offlineTreeBuilding = true;
+        this.timeLimit = 1;
+        this.hasTimeLimit = true;
 
         // Indicates what the opponent (human) is faced with at close
         // Used to retrieve tree from previous state
@@ -139,6 +142,10 @@ class MCTSAgent extends Agent{
         }
     }
 
+    setTimeLimit(timeLimit) {
+        this.timeLimit = timeLimit;
+    }
+
     nodeVisited(nodeID) {
         for (let i = 0; i < this.allExpandedNodes.length; i++){
             if (nodeID === this.allExpandedNodes[i]) {
@@ -152,9 +159,12 @@ class MCTSAgent extends Agent{
         // var tempRoot = null;
         // while (tempRoot)
         // this.improveTree(this.playerBoardState.bandit())
+        // this.improveTree()
     }
 
     improveTree(givenRoot) {
+
+        console.log("Improving")
 
         var searchRoot = null;
 
@@ -166,7 +176,7 @@ class MCTSAgent extends Agent{
             searchRoot = givenRoot
         }
 
-        console.log("Improving tree")
+        // console.log("Improving tree")
 
         var path = [searchRoot]
         var activeNode = searchRoot
@@ -252,6 +262,7 @@ class MCTSAgent extends Agent{
                 }
             }
         }
+        // console.log(path)
     }
 
     selectMove(board, moves) {
@@ -284,8 +295,7 @@ class MCTSAgent extends Agent{
         this.turn++
 
         // Time loop
-        const timeLimit = 1
-        const timeLimitSeconds = timeLimit * 1000
+        var timeLimitSeconds = this.timeLimit * 1000
         const start = Date.now()
         while (Date.now() - start < timeLimitSeconds) {
             this.improveTree()
@@ -327,6 +337,7 @@ class MCTSAgent extends Agent{
 
         // Board state being left to player
         this.playerBoardState = playerState;
+        this.rootNode = playerState
         
         // Best move after Q-value analysis
         // console.log(round(bestQ,4))
