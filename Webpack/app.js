@@ -5,6 +5,7 @@ var agents = require('./Agents');
 const TIMEOUT = 0;
 // Used to cover piece moves
 const COVER_TIMEOUT = 500;
+const TINYTIMEOUT = 15;
 
 var opponent = agents.getAgent("random", 0, true);
 
@@ -60,6 +61,8 @@ game.move(possibleMoves[randomIdx])
 var lastPlayerMove = null
 function onDrop(source, target) {
     
+    console.log("werc")
+
     gameActive = true
 
     var promoting = false;
@@ -99,8 +102,7 @@ function onDrop(source, target) {
     }
 
     else {
-        // Move using active agent
-        waitingForComputer = true
+        window.setTimeout(setComp, TINYTIMEOUT)
     }
 
     lastPlayerMove = newMove
@@ -109,6 +111,13 @@ function onDrop(source, target) {
     canPickUp = false;
 
     window.setTimeout(updateBoard, TIMEOUT)
+
+}
+
+function setComp() {
+    // Move using active agent
+    waitingForComputer = true
+    console.log("rat")
 }
 
 
