@@ -2,10 +2,12 @@
 var agents = require('./Agents');
 
 // No timeout on certain moves
-const TIMEOUT = 0;
+const NO_TIMEOUT = 0;
 // Used to cover piece moves
-const COVER_TIMEOUT = 500;
-const TINYTIMEOUT = 15;
+const COVER_TIMEOUT = 50;
+const TINY_TIMEOUT = 15;
+
+var printMoves = false;
 
 var opponent = agents.getAgent("random", 0, true);
 
@@ -61,8 +63,6 @@ game.move(possibleMoves[randomIdx])
 var lastPlayerMove = null
 function onDrop(source, target) {
     
-    console.log("werc")
-
     gameActive = true
 
     var promoting = false;
@@ -82,7 +82,6 @@ function onDrop(source, target) {
         }
     }
 
-
     if (!promoting) {
         newMove = game.move({
             from: source,
@@ -96,13 +95,26 @@ function onDrop(source, target) {
         return 'snapback'
     }
 
+    if (printMoves) {
+        console.log(newMove)
+    }
+
+    // if (newMove.san === 'O-O') {
+    //     console.log("we0crwoieurcowiecuowieurcwioerucniowerucioewrucn")
+    //     board.position(game.fen())
+    // }
+
+    // else if (newMove.san === 'O-O-O') {
+    //     console.log("----------------------")
+    // }
+
     // Check for end of game
     if (game.isGameOver()) {
         console.log("Game over")
     }
 
     else {
-        window.setTimeout(setComp, TINYTIMEOUT)
+        window.setTimeout(setComp, TINY_TIMEOUT)
     }
 
     lastPlayerMove = newMove
@@ -110,14 +122,13 @@ function onDrop(source, target) {
     boardReady = false;
     canPickUp = false;
 
-    window.setTimeout(updateBoard, TIMEOUT)
+    window.setTimeout(updateBoard, TINY_TIMEOUT)
 
 }
 
 function setComp() {
     // Move using active agent
     waitingForComputer = true
-    console.log("rat")
 }
 
 
@@ -153,6 +164,7 @@ function resetGame(){
     console.log("resetting")
     game = new chess.Chess()
     board.position(game.fen())
+    canPickUp = true;
 }
 
 // Agent listeners --------------------------- start
@@ -331,11 +343,15 @@ function computerMove() {
     // Get agent move
     nextMove = opponent.selectMove(game, moves)
 
+    if (printMoves) {
+        console.log(nextMove)
+    }
+
     // Move in internal game
     game.move(nextMove)
 
     // Move on front end board
-    window.setTimeout(updateBoard, TIMEOUT)
+    window.setTimeout(updateBoard, NO_TIMEOUT)
 
     // Allow player pick up
     canPickUp = true;
@@ -349,10 +365,10 @@ var newTime = 0
 startDate = Date.now()
 window.onload = function() {            
     function test() {
-        newTime = ((Date.now() - startDate) / 1000)
-        if (newTime > timeCount) {
-            timeCount++
-        }
+        // newTime = ((Date.now() - startDate) / 1000)
+        // // if (newTime > timeCount) {
+        // //     timeCount++
+        // // }
         update()
     }
     setInterval(test, 1);

@@ -103,7 +103,8 @@ class GreedyAgent extends Agent{
             clonedBoard.move(move)
 
             // Using piece value evaluation
-            const boardValue = eval.pieceValue(clonedBoard, color)
+            // Previous action and evaluation irrelevant here
+            const boardValue = eval.pieceValue(clonedBoard, color, null, 0)
 
             if (boardValue > bestMoveValue) {
                 bestMove = move
@@ -176,8 +177,6 @@ class MCTSAgent extends Agent{
             searchRoot = givenRoot
         }
 
-        // console.log("Improving tree")
-
         var path = [searchRoot]
         var activeNode = searchRoot
 
@@ -197,6 +196,7 @@ class MCTSAgent extends Agent{
             }
 
             activeNode = activeNode.bandit()
+            activeNode.visits++
             path.push(activeNode)
 
             // // Adding to total visitations
@@ -234,7 +234,6 @@ class MCTSAgent extends Agent{
         for (let j = path.length - 2; j >= 0; j--) {
 
             var pathNode = path[j]
-            pathNode.visits++
 
             // If node is unexpanded (no children)
             if (!expansionNeeded && j === path.length) {
@@ -251,7 +250,7 @@ class MCTSAgent extends Agent{
 
                 if (keyValue > pathNode.qValue) {
                     if (j === 1) {
-                        console.log("Useful")
+                        // console.log("Useful")
                     }
                     pathNode.bestMoveObject = path[j+1].actionObject
                     pathNode.updateNodeValue(keyValue)
@@ -308,11 +307,12 @@ class MCTSAgent extends Agent{
         // For clean code
         var dictLen = Object.keys(this.rootNode.moveObjects).length
 
+        // console.log("------------------------")
+
         for (let i = 0; i < dictLen; i++) {
             var moveObject = this.rootNode.moveObjects[i]
 
             var opponentNode = this.rootNode.childrenDict[moveObject.id]
-            // console.log(moveObject.move.to + " <> " + opponentNode.qValue)
 
             console.log("\nMove: " + moveObject.move.to)
             console.log("Value: " + round(invertEval(opponentNode.qValue), 4))

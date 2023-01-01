@@ -59,7 +59,11 @@ class Node {
         // Evaluation is relative to the colour of the node.
         // E.g. black node with high black piece count has q > 0.5,
         //      irrespective of whether the node is a human or not.
-        var tempQ = eval.pieceValue(this.board, this.ownerColor);
+        var tempParentQ = 0
+        if (this.parent != null) {
+            tempParentQ = this.parent.qValue;
+        }
+        var tempQ = eval.pieceValue(this.board, this.ownerColor, this.action, tempParentQ);
 
         // this.bestMoveValue = this.qValue;
         // console.log("From node creation")
