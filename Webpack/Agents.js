@@ -127,6 +127,7 @@ class MCTSAgent extends Agent{
         this.offlineTreeBuilding = true;
         this.timeLimit = 1;
         this.hasTimeLimit = true;
+        this.MIN_ROUNDS = 10;
 
         // Indicates what the opponent (human) is faced with at close
         // Used to retrieve tree from previous state
@@ -301,7 +302,13 @@ class MCTSAgent extends Agent{
         // Time loop
         var timeLimitSeconds = this.timeLimit * 1000
         const start = Date.now()
-        while (Date.now() - start < timeLimitSeconds) {
+
+        // Think for at least this number of rounds
+        // Required for avoiding no child expansion
+        var roundsCount = 0
+
+        while (Date.now() - start < timeLimitSeconds || roundsCount < this.MIN_ROUNDS) {
+            roundsCount++
             this.improveTree(false)
         }
 
