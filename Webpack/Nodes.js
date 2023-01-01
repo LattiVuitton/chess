@@ -118,9 +118,10 @@ class Node {
 
     // Multi-arm bandit
     // Assumes that the node is expanded
-    bandit() {
+    bandit(cOverride) {
 
         if (Object.keys(this.childrenDict).length != this.moves.length) {
+
             console.log("MISTAKE! node requesting next without being expanded first")
             return null
         }
@@ -131,6 +132,10 @@ class Node {
 
         var t = this.visits
         var c = 0.1;
+
+        if (cOverride != undefined) {
+            c = cOverride;
+        }
 
         for (let i = 0; i < this.moveObjects.length; i++){
             var actionCheck = this.moveObjects[i];
