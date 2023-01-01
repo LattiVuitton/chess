@@ -1,6 +1,6 @@
 // const printHello = require('./print-hello');
 var agents = require('./Agents');
-var offlineAllow = true;
+var offlineAllow = false;
 
 // No timeout on certain moves
 const NO_TIMEOUT = 0;
