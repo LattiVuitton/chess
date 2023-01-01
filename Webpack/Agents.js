@@ -157,28 +157,26 @@ class MCTSAgent extends Agent{
     }
 
     offlineImproveTree() {
-        // var tempRoot = null;
-        // while (tempRoot)
-        // this.improveTree(this.playerBoardState.bandit())
-        // this.improveTree()
+        // this.improveTree(true)
     }
 
-    improveTree(givenRoot) {
+    improveTree(offline) {
 
-        console.log("Improving")
+        // console.log("Improving")
 
-        var searchRoot = null;
+        var searchNode = this.rootNode
 
-        if (givenRoot === undefined) {
-            searchRoot = this.rootNode
+        if (offline) {
+            if (!searchNode.fullyExplored()) {
+                searchNode.expand()
+            }
+            searchNode = this.rootNode.bandit(0.3)
         }
 
-        else {
-            searchRoot = givenRoot
-        }
+        var path = [searchNode]
+        var activeNode = searchNode
 
-        var path = [searchRoot]
-        var activeNode = searchRoot
+        activeNode.visits++
 
         var expansionNeeded = true;
 
@@ -270,8 +268,11 @@ class MCTSAgent extends Agent{
 
         var foundRootNode = false;
 
+
         if (this.playerAvailableMoves != null) {
+
             for (let i = 0; i < this.playerAvailableMoves.length; i++){
+
                 var playerMove = this.playerAvailableMoves[i];
                 var boardAfterPlayer = new Chess(this.playerBoardState.board.fen())
                 boardAfterPlayer.move(playerMove.move)
@@ -291,13 +292,17 @@ class MCTSAgent extends Agent{
             console.log("Couldnt retrieve, giving new: " + this.rootNode.id)
         }
 
+        else {
+            console.log("Found!")
+        }
+
         this.turn++
 
         // Time loop
         var timeLimitSeconds = this.timeLimit * 1000
         const start = Date.now()
         while (Date.now() - start < timeLimitSeconds) {
-            this.improveTree()
+            this.improveTree(false)
         }
 
         var bestMove = null
@@ -307,22 +312,24 @@ class MCTSAgent extends Agent{
         // For clean code
         var dictLen = Object.keys(this.rootNode.moveObjects).length
 
-        // console.log("------------------------")
-
         for (let i = 0; i < dictLen; i++) {
             var moveObject = this.rootNode.moveObjects[i]
 
             var opponentNode = this.rootNode.childrenDict[moveObject.id]
 
-            console.log("\nMove: " + moveObject.move.to)
-            console.log("Value: " + round(invertEval(opponentNode.qValue), 4))
-            console.log("Visits: " + opponentNode.visits)
+            // console.log("\nMove: " + moveObject.move.to)
+            // console.log("Value: " + round(invertEval(opponentNode.qValue), 4))
+            // console.log("Visits: " + opponentNode.visits)
 
             if (invertEval(opponentNode.qValue) > bestQ) {
                 bestMove = moveObject.move;
                 bestQ = invertEval(opponentNode.qValue);
                 playerState = opponentNode;
             }
+        }
+
+        if (!playerState.fullyExplored()) {
+            // playerState.expand()
         }
 
         // Clear moves available to opponent (human)
@@ -333,6 +340,7 @@ class MCTSAgent extends Agent{
 
             // Add move to player moves
             this.playerAvailableMoves.push(playerState.moveObjects[i]);
+
         }
 
         // Board state being left to player
