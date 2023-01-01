@@ -1,5 +1,6 @@
 // const printHello = require('./print-hello');
 var agents = require('./Agents');
+var offlineAllow = true;
 
 // No timeout on certain moves
 const NO_TIMEOUT = 0;
@@ -147,6 +148,7 @@ var WorB = true;
 var simulateButton = document.getElementById("CompVComp");
 var colorButton = document.getElementById("colorButton");
 var resetButton = document.getElementById("resetButton")
+var allowBuilding = document.getElementById("allowBuilding")
 
 simulateButton.addEventListener("click", function () {
     simulateGame()
@@ -158,6 +160,10 @@ colorButton.addEventListener("click", function () {
 
 resetButton.addEventListener("click", function () {
     resetGame()
+}, false);
+
+allowBuilding.addEventListener("click", function () {
+    allowBuilding = !allowBuilding;
 }, false);
 
 function resetGame(){
@@ -392,8 +398,10 @@ function update() {
         }
     }
 
-    else if (gameActive && opponent.offlineTreeBuilding && treeBuildingAllowed){
-        opponent.offlineImproveTree()
+    else if (gameActive && opponent.offlineTreeBuilding && treeBuildingAllowed) {
+        if (allowBuilding) {
+            opponent.offlineImproveTree()
+        }
     }
 
 }
