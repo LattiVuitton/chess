@@ -29,7 +29,22 @@ function artificialCost(cost) {
 
 }
 
-exports.pieceValue = function countPieces(game, nodeColor) {
+exports.pieceValue = function countPieces(game, nodeColor, action, preEval) {
+
+    var pieceTaken = false;
+
+    if (action != null) {
+        stringSan = action.san.split("")
+        for (let i = 0; i < stringSan.length; i++){
+            if (stringSan[i] === 'x') {
+                pieceTaken = true;
+            }
+        }
+    }
+
+    if (!pieceTaken) {
+        return preEval
+    }
     
     var myScore = 0
     var oppScore = 0
