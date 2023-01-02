@@ -59,7 +59,7 @@ class Node {
         // Evaluation is relative to the colour of the node.
         // E.g. black node with high black piece count has q > 0.5,
         //      irrespective of whether the node is a human or not.
-        var tempParentQ = 0
+        var tempParentQ = -1
         if (this.parent != null) {
             tempParentQ = this.parent.qValue;
         }
@@ -126,12 +126,14 @@ class Node {
             return null
         }
 
+        // return this.childrenDict[this.moveObjects[Math.floor(Math.random() * this.moveObjects.length)].id]
+
         // UCB
         var bestA = -1
         var bestAction = null;
 
         var t = this.visits
-        var c = 0.1;
+        var c = 0.5;
 
         if (cOverride != undefined) {
             c = cOverride;
@@ -176,7 +178,8 @@ class Node {
             var giveMoveObject = new MoveObject(givenMove);
             this.moveObjects.push(giveMoveObject)
 
-            var nextState = new Chess(this.board.fen())
+            var nextState = this.board//new Chess(this.board.fen())
+
             nextState.move(givenMove)
             var nextMoves = nextState.moves({ verbose: true })
 
@@ -227,4 +230,151 @@ exports.getNewRoot = function getNode(board, parent, moves, WorB, action) {
 
     var node = new Node(board, parent, moves, WorB, action, true)
     return node
+}
+
+class LightNode{
+
+    constructor(parent, moves, WorB, action) {
+
+        this.parent = parent;
+    }
+
+    fullyExplored() {
+        if (Object.keys(this.childrenDict).length === this.moves.length) {
+            return true
+        }
+        return false
+    }
+
+    hasNoMoves() {
+        if (this.moves.length === 0) return true
+        return false
+    }
+
+    matchesAgentColor(agentColor) {
+        if (this.WorB === agentColor) {
+            return true;
+        }
+
+        return false;
+    }
+
+    getOppColor(color) {
+        if (color === 'w') {
+            return 'b'
+        }
+
+        if (color === 'b') {
+            return 'w'
+        }
+
+        else {
+            console.log("error!")
+            return null;
+        }
+    }
+
+    // Multi-arm bandit
+    // Assumes that the node is expanded
+    bandit(cOverride) {
+
+        if (Object.keys(this.childrenDict).length != this.moves.length) {
+
+            console.log("MISTAKE! node requesting next without being expanded first")
+            return null
+        }
+
+        // return this.childrenDict[this.moveObjects[Math.floor(Math.random() * this.moveObjects.length)].id]
+
+        // UCB
+        var bestA = -1
+        var bestAction = null;
+
+        var t = this.visits
+        var c = 0.5;
+
+        if (cOverride != undefined) {
+            c = cOverride;
+        }
+
+        for (let i = 0; i < this.moveObjects.length; i++){
+            var actionCheck = this.moveObjects[i];
+
+            var Q = invertEval(this.childrenDict[actionCheck.id].qValue)
+            var N = this.childrenDict[actionCheck.id].visits
+            // console.log("Q: " + round(Q,2) + " c: " + c + " N: " + N + " t: " + t)
+
+            var A = Q + c * (Math.log(t) / N)
+
+            if (A > bestA) {
+                bestA = A;
+                bestAction = actionCheck
+            }
+        }
+
+        return this.childrenDict[bestAction.id]
+    }
+
+    expand(AgentWorB) {
+
+        // console.log("\nExpanding: " + this.id)
+
+        var maxQ = -2;
+        var bestActionObject = null;
+
+        if (this.hasNoMoves()) {
+            if (this.board.isCheckmate()) {
+                maxQ = 0;
+            }
+            else {
+                maxQ = 0.5;
+            }
+        }
+
+        for (let i = 0; i < this.moves.length; i++){
+            var givenMove = this.moves[i]
+            var giveMoveObject = new MoveObject(givenMove);
+            this.moveObjects.push(giveMoveObject)
+
+            var nextState = this.board//new Chess(this.board.fen())
+
+            nextState.move(givenMove)
+            var nextMoves = nextState.moves({ verbose: true })
+
+            // var nextNode = new Node(nextState, this, nextMoves, !this.WorB, givenMove, this.getOppColor(this.ownerColor))
+            var nextNode = new Node(nextState, this, nextMoves, !this.WorB, givenMove, true)
+
+            if (nextNode.hasNoMoves()) {
+                if (nextNode.board.isCheckmate()) {
+                    nextNode.qValue = 0;
+                    maxQ = 1;
+                    bestActionObject = giveMoveObject;
+                    this.childrenDict[giveMoveObject.id] = nextNode
+
+                    break;
+                }
+                else {
+                    nextNode.qValue = 0.5;
+                }
+            }
+
+            // Since the next node is always an opponent,
+            //      it has opposite evaluation, (0.2 vs 0.8 for same board)
+            if (invertEval(nextNode.qValue) > maxQ) {
+                    maxQ = invertEval(nextNode.qValue)
+                    bestActionObject = giveMoveObject;
+                }
+
+            this.childrenDict[giveMoveObject.id] = nextNode
+        }
+
+        // Updating best move from this node and value achieved
+        this.bestMoveObject = bestActionObject;
+
+        // Updating node value
+        this.updateNodeValue(maxQ)
+
+        // For use in backprop
+        return maxQ;
+    }
 }
