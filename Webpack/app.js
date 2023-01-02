@@ -163,7 +163,7 @@ resetButton.addEventListener("click", function () {
 }, false);
 
 allowBuilding.addEventListener("click", function () {
-    allowBuilding = !allowBuilding;
+    offlineAllow = !offlineAllow;
 }, false);
 
 function resetGame(){
@@ -399,7 +399,7 @@ function update() {
     }
 
     else if (gameActive && opponent.offlineTreeBuilding && treeBuildingAllowed) {
-        if (allowBuilding) {
+        if (offlineAllow) {
             opponent.offlineImproveTree()
         }
     }

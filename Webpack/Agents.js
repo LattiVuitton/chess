@@ -158,7 +158,7 @@ class MCTSAgent extends Agent{
     }
 
     offlineImproveTree() {
-        // this.improveTree(true)
+        this.improveTree(true)
     }
 
     improveTree(offline) {
@@ -204,14 +204,13 @@ class MCTSAgent extends Agent{
             // }
         }
 
-        // console.log("Path Length: " + path.length)
-
         var foundValue = 0
 
         // Expansion
         if (expansionNeeded) {
             foundValue = activeNode.expand(this.WorB)
         }
+
 
         var valueToAgent = 0
         var valueToPlayer = 0
@@ -308,6 +307,7 @@ class MCTSAgent extends Agent{
         var roundsCount = 0
 
         while (Date.now() - start < timeLimitSeconds || roundsCount < this.MIN_ROUNDS) {
+
             roundsCount++
             this.improveTree(false)
         }
@@ -324,9 +324,9 @@ class MCTSAgent extends Agent{
 
             var opponentNode = this.rootNode.childrenDict[moveObject.id]
 
-            // console.log("\nMove: " + moveObject.move.to)
-            // console.log("Value: " + round(invertEval(opponentNode.qValue), 4))
-            // console.log("Visits: " + opponentNode.visits)
+            console.log("\nMove: " + moveObject.move.to)
+            console.log("Value: " + round(invertEval(opponentNode.qValue), 4))
+            console.log("Visits: " + opponentNode.visits)
 
             if (invertEval(opponentNode.qValue) > bestQ) {
                 bestMove = moveObject.move;

@@ -42,7 +42,7 @@ exports.pieceValue = function countPieces(game, nodeColor, action, preEval) {
         }
     }
 
-    if (!pieceTaken) {
+    if (!pieceTaken && preEval >= 0 && preEval <= 1) {
         return preEval
     }
     
