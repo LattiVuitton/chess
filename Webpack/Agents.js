@@ -608,7 +608,8 @@ var agentTypesDict = {
     "random": RandomAgent,
     "alwaysTake": AlwaysTake,
     "greedy": GreedyAgent,
-    "MCTS": MCTSAgent
+    "MCTS": MCTSAgent,
+    "LightMCTS": LightMCTS
 };
 
 exports.getAgent = function getAgentType(agentType, id, WorB) {
