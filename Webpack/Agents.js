@@ -307,7 +307,250 @@ class MCTSAgent extends Agent{
         var roundsCount = 0
 
         while (Date.now() - start < timeLimitSeconds || roundsCount < this.MIN_ROUNDS) {
+            roundsCount++
+            this.improveTree(false)
+        }
 
+        var bestMove = null
+        var bestQ = -1
+        var playerState = null
+
+        // For clean code
+        var dictLen = Object.keys(this.rootNode.moveObjects).length
+
+        for (let i = 0; i < dictLen; i++) {
+            var moveObject = this.rootNode.moveObjects[i]
+
+            var opponentNode = this.rootNode.childrenDict[moveObject.id]
+
+            console.log("\nMove: " + moveObject.move.to)
+            console.log("Value: " + round(invertEval(opponentNode.qValue), 4))
+            console.log("Visits: " + opponentNode.visits)
+
+            if (invertEval(opponentNode.qValue) > bestQ) {
+                bestMove = moveObject.move;
+                bestQ = invertEval(opponentNode.qValue);
+                playerState = opponentNode;
+            }
+        }
+
+        if (!playerState.fullyExplored()) {
+            // playerState.expand()
+        }
+
+        // Clear moves available to opponent (human)
+        this.playerAvailableMoves = []
+
+        // State of board being delivered to opponent
+        for (let i = 0; i < playerState.moveObjects.length; i++){
+
+            // Add move to player moves
+            this.playerAvailableMoves.push(playerState.moveObjects[i]);
+
+        }
+
+        // Board state being left to player
+        this.playerBoardState = playerState;
+        this.rootNode = playerState
+        
+        // Best move after Q-value analysis
+        // console.log(round(bestQ,4))
+
+        return bestMove
+    }
+}
+
+class LightMCTS extends Agent{
+    constructor(id, WorB) {
+        super(id, WorB)
+        this.requiresVerbose = true
+        this.rootNode = null
+        this.rootID = -1
+        this.allExpandedNodes = []
+        this.requiresLastPlayerMove = true;
+        this.offlineTreeBuilding = true;
+        this.timeLimit = 1;
+        this.hasTimeLimit = true;
+        this.MIN_ROUNDS = 10;
+
+        // Indicates what the opponent (human) is faced with at close
+        // Used to retrieve tree from previous state
+        // Value changes at the end of each move
+        this.playerAvailableMoves = null;
+        this.playerBoardState = null;
+
+        this.MAX_PATH_LENGTH = 1000
+        if (WorB) {
+            this.turn = 1
+        }
+        else {
+            this.turn = 2
+        }
+    }
+
+    setTimeLimit(timeLimit) {
+        this.timeLimit = timeLimit;
+    }
+
+    nodeVisited(nodeID) {
+        for (let i = 0; i < this.allExpandedNodes.length; i++){
+            if (nodeID === this.allExpandedNodes[i]) {
+                return true
+            }
+        }
+        return false
+    }
+
+    offlineImproveTree() {
+        this.improveTree(true)
+    }
+
+    improveTree(offline) {
+
+        // console.log("Improving")
+
+        var searchNode = this.rootNode
+
+        if (offline) {
+            if (!searchNode.fullyExplored()) {
+                searchNode.expand()
+            }
+            searchNode = this.rootNode.bandit(0.3)
+        }
+
+        var path = [searchNode]
+        var activeNode = searchNode
+
+        activeNode.visits++
+
+        var expansionNeeded = true;
+
+        // Selection
+        while (activeNode.fullyExplored()) {
+
+            if (activeNode.hasNoMoves()) {
+                expansionNeeded = false;
+                break;
+            }
+
+            if (path.length > this.MAX_PATH_LENGTH) {
+                expansionNeeded = false;
+                break;
+            }
+
+            activeNode = activeNode.bandit()
+            activeNode.visits++
+            path.push(activeNode)
+
+            // // Adding to total visitations
+            // if (!this.nodeVisited(activeNode.id)) {
+            //     this.allExpandedNodes.push(activeNode.id)
+            // }
+        }
+
+        var foundValue = 0
+
+        // Expansion
+        if (expansionNeeded) {
+            foundValue = activeNode.expand(this.WorB)
+        }
+
+
+        var valueToAgent = 0
+        var valueToPlayer = 0
+
+        if (activeNode.matchesAgentColor(this.WorB)) {
+            valueToPlayer = invertEval(foundValue);
+            valueToAgent = foundValue;
+        }
+
+        else {
+            valueToAgent = invertEval(foundValue);
+            valueToPlayer = foundValue;
+        }
+        
+        // Backprop
+        // console.log("")
+
+        // For all nodes except last node in path
+        for (let j = path.length - 2; j >= 0; j--) {
+
+            var pathNode = path[j]
+
+            // If node is unexpanded (no children)
+            if (!expansionNeeded && j === path.length) {
+                console.log("No backprop here")
+            }
+
+            else {
+
+                var keyValue = valueToPlayer;
+
+                if (pathNode.matchesAgentColor(this.WorB)) {
+                    keyValue = valueToAgent;
+                }
+
+                if (keyValue > pathNode.qValue) {
+                    if (j === 1) {
+                        // console.log("Useful")
+                    }
+                    pathNode.bestMoveObject = path[j+1].actionObject
+                    pathNode.updateNodeValue(keyValue)
+                }
+
+                else {
+                    break;
+                }
+            }
+        }
+        // console.log(path)
+    }
+
+    selectMove(board, moves) {
+
+        this.allExpandedNodes = []
+
+        var foundRootNode = false;
+
+
+        if (this.playerAvailableMoves != null) {
+
+            for (let i = 0; i < this.playerAvailableMoves.length; i++){
+
+                var playerMove = this.playerAvailableMoves[i];
+                var boardAfterPlayer = new Chess(this.playerBoardState.board.fen())
+                boardAfterPlayer.move(playerMove.move)
+
+                if (boardAfterPlayer.fen() === board.fen()) {
+                    if (this.playerBoardState != null) {
+                        this.rootNode = this.playerBoardState.childrenDict[playerMove.id]
+                        foundRootNode = true;
+                    }
+                }
+            }
+        }
+
+        // Root node returned is faulty OR couldnt retrieve root
+        if (this.rootNode === null || !foundRootNode) {
+            this.rootNode = nodes.getNewRoot(board, null, board.moves({ verbose: true }), this.WorB, null)
+            console.log("Couldnt retrieve, giving new: " + this.rootNode.id)
+        }
+
+        else {
+            console.log("Found!")
+        }
+
+        this.turn++
+
+        // Time loop
+        var timeLimitSeconds = this.timeLimit * 1000
+        const start = Date.now()
+
+        // Think for at least this number of rounds
+        // Required for avoiding no child expansion
+        var roundsCount = 0
+
+        while (Date.now() - start < timeLimitSeconds || roundsCount < this.MIN_ROUNDS) {
             roundsCount++
             this.improveTree(false)
         }
