@@ -178,7 +178,7 @@ class Node {
             var giveMoveObject = new MoveObject(givenMove);
             this.moveObjects.push(giveMoveObject)
 
-            var nextState = this.board//new Chess(this.board.fen())
+            var nextState = new Chess(this.board.fen())
 
             nextState.move(givenMove)
             var nextMoves = nextState.moves({ verbose: true })

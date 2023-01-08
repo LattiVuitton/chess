@@ -177,13 +177,15 @@ function resetGame(){
 var randomAgent = document.getElementById("randomAgent");
 var heuristicAgent = document.getElementById("heuristicAgent");
 var MCTSAgent = document.getElementById("MCTSAgent");
+var LightAgent = document.getElementById("LightAgent");
 
 randomAgent.addEventListener("click", function () {changeAgent("random")}, false);
 heuristicAgent.addEventListener("click", function () {changeAgent("heuristic")}, false);
 MCTSAgent.addEventListener("click", function () {changeAgent("MCTS")}, false);
+LightAgent.addEventListener("click", function () {changeAgent("LightMCTSAgent")}, false);
 
 // Auto set MCTS
-changeAgent("MCTS")
+changeAgent("LightMCTSAgent")
 
 var changeTime05 = document.getElementById("changeTo05");
 var changeTime1 = document.getElementById("changeTo1");
@@ -206,6 +208,7 @@ changeTime3.addEventListener("click", function () { changeTime(3)}, false)
 changeTime5.addEventListener("click", function () { changeTime(5)}, false)
 
 function changeAgent(agentName) {
+
     if (!gameActive) {
 
         var foundAgent = true
@@ -220,6 +223,10 @@ function changeAgent(agentName) {
 
         else if (agentName === "MCTS") {
             setOpponent("MCTS")
+        }
+            
+        else if (agentName === "LightMCTSAgent") {
+            setOpponent("LightMCTS")
         }
         
         else {
