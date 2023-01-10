@@ -194,6 +194,7 @@ var changeTime3 = document.getElementById("changeTo3");
 var changeTime5 = document.getElementById("changeTo5");
 
 function changeTime(timeLimit) {
+    console.log("Setting time limit to " + timeLimit + " seconds.")
     if (opponent != null) {
         if (opponent.hasTimeLimit) {
             opponent.setTimeLimit(timeLimit)

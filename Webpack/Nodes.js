@@ -232,18 +232,41 @@ exports.getNewRoot = function getNode(board, parent, moves, WorB, action) {
     return node
 }
 
-class LightNode{
+exports.getLightNode = function getNode(parent, WorB, action, board) {
 
-    constructor(parent, moves, WorB, action) {
-
-        this.parent = parent;
+    var ownedColor = 'b'
+    if (WorB) {
+        ownedColor = 'w'
     }
 
-    fullyExplored() {
-        if (Object.keys(this.childrenDict).length === this.moves.length) {
-            return true
-        }
-        return false
+    return new LightNode(parent, WorB, action, board)
+}
+
+var lightID = 0;
+function getLightID() {
+    lightID++
+    return lightID;
+}
+
+class LightNode{
+
+    constructor(parent, WorB, action, board) {
+
+        this.id = getLightID();
+
+        this.parent = parent;
+        this.visits = 0;
+        this.moves = [];
+
+        this.action = action
+
+        // We won't waste time on checking available moves
+        // Until we need to expand the node
+        this.movesDiscovered = false;
+        this.children = {}
+
+        // Only root nodes have a board
+        this.board = board;
     }
 
     hasNoMoves() {
@@ -274,21 +297,28 @@ class LightNode{
         }
     }
 
+    discoverMoves(moves){
+        this.moves = moves;
+    }
+
     // Multi-arm bandit
     // Assumes that the node is expanded
-    bandit(cOverride) {
+    bandit() {
 
-        if (Object.keys(this.childrenDict).length != this.moves.length) {
-
-            console.log("MISTAKE! node requesting next without being expanded first")
-            return null
+        let randomNumber = Math.floor(Math.random() * this.moves.length)
+        if (this.moves[randomNumber] in this.children) {
+            return this.children[this.moves[randomNumber]]
+        }
+        else {
+            let randomNumber = Math.floor(Math.random() * this.moves.length)
+            this.children[this.moves[randomNumber]]
+                = new LightNode(this, true, this.moves[randomNumber], null)
+            return this.children[this.moves[randomNumber]] 
         }
 
-        // return this.childrenDict[this.moveObjects[Math.floor(Math.random() * this.moveObjects.length)].id]
-
         // UCB
-        var bestA = -1
-        var bestAction = null;
+        let bestA = -1
+        let bestAction = null;
 
         var t = this.visits
         var c = 0.5;
@@ -297,12 +327,11 @@ class LightNode{
             c = cOverride;
         }
 
-        for (let i = 0; i < this.moveObjects.length; i++){
+        for (let i = 0; i < this.moves.length; i++){
             var actionCheck = this.moveObjects[i];
 
             var Q = invertEval(this.childrenDict[actionCheck.id].qValue)
             var N = this.childrenDict[actionCheck.id].visits
-            // console.log("Q: " + round(Q,2) + " c: " + c + " N: " + N + " t: " + t)
 
             var A = Q + c * (Math.log(t) / N)
 
@@ -312,7 +341,7 @@ class LightNode{
             }
         }
 
-        return this.childrenDict[bestAction.id]
+        return this.children[bestAction]
     }
 
     expand(AgentWorB) {
