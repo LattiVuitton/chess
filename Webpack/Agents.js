@@ -369,7 +369,7 @@ class LightMCTS extends Agent{
         this.allExpandedNodes = []
         this.requiresLastPlayerMove = true;
         this.offlineTreeBuilding = true;
-        this.timeLimit = 0.1;
+        this.timeLimit = 1//0.1;
         this.hasTimeLimit = true;
         this.MIN_ROUNDS = 10;
 
@@ -424,7 +424,7 @@ class LightMCTS extends Agent{
             path.push(searchNode)
 
             this.testGame.move(searchNode.action)
-
+            this.zonky = eval.pieceValue(this.testGame)
         }
 
         for (let i = path.length - 1; i >= 0; i--){
@@ -457,7 +457,10 @@ class LightMCTS extends Agent{
         this.rootNode = nodes.getLightNode(null, true, null, board);
         this.testGame = new Chess(this.rootNode.board.fen());
 
+        this.rat = 0;
+
         while (Date.now() - start < (this.timeLimit * 1000) || roundsCount < this.MIN_ROUNDS) {
+            roundsCount++
             this.improveTree()
         }
 
