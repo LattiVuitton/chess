@@ -424,8 +424,13 @@ class LightMCTS extends Agent{
             path.push(searchNode)
 
             this.testGame.move(searchNode.action)
-            this.zonky = eval.pieceValue(this.testGame)
         }
+
+        let preQ = -1;
+        if (searchNode.parent != undefined) {
+            preQ = searchNode.parent.qValue
+        }
+        searchNode.setQValue(eval.getQValue(this.testGame, searchNode.action, preQ));
 
         for (let i = path.length - 1; i >= 0; i--){
             this.testGame.undo(path[i].action)
@@ -434,16 +439,6 @@ class LightMCTS extends Agent{
     }
 
     selectMove(board, moves) {
-
-        // // Root node returned is faulty OR couldnt retrieve root
-        // if (this.rootNode === null || !foundRootNode) {
-        //     this.rootNode = nodes.getNewRoot(board, null, board.moves({ verbose: true }), this.WorB, null)
-        //     console.log("Couldnt retrieve, giving new: " + this.rootNode.id)
-        // }
-
-        // else {
-        //     console.log("Found!")
-        // }
 
         this.turn++
 
@@ -464,56 +459,18 @@ class LightMCTS extends Agent{
             this.improveTree()
         }
 
+        console.log(eval.getCount())
+
         console.log("Count: " + this.rat)
 
+        var counting = 0;
+
+        for (var moveKey in this.rootNode.children) {
+            console.log(this.rootNode.children[moveKey].visits)
+            counting += this.rootNode.children[moveKey].visits
+        }
+
         return moves[0]
-
-        var bestMove = null
-        var bestQ = -1
-        var playerState = null
-
-        // For clean code
-        var dictLen = Object.keys(this.rootNode.moveObjects).length
-
-        for (let i = 0; i < dictLen; i++) {
-            var moveObject = this.rootNode.moveObjects[i]
-
-            var opponentNode = this.rootNode.childrenDict[moveObject.id]
-
-            console.log("\nMove: " + moveObject.move.to)
-            console.log("Value: " + round(invertEval(opponentNode.qValue), 4))
-            console.log("Visits: " + opponentNode.visits)
-
-            if (invertEval(opponentNode.qValue) > bestQ) {
-                bestMove = moveObject.move;
-                bestQ = invertEval(opponentNode.qValue);
-                playerState = opponentNode;
-            }
-        }
-
-        if (!playerState.fullyExplored()) {
-            // playerState.expand()
-        }
-
-        // Clear moves available to opponent (human)
-        this.playerAvailableMoves = []
-
-        // State of board being delivered to opponent
-        for (let i = 0; i < playerState.moveObjects.length; i++){
-
-            // Add move to player moves
-            this.playerAvailableMoves.push(playerState.moveObjects[i]);
-
-        }
-
-        // Board state being left to player
-        this.playerBoardState = playerState;
-        this.rootNode = playerState
-        
-        // Best move after Q-value analysis
-        // console.log(round(bestQ,4))
-
-        return bestMove
     }
 }
 

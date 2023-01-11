@@ -267,6 +267,13 @@ class LightNode{
 
         // Only root nodes have a board
         this.board = board;
+
+        // Immediately set after creation from agent side
+        this.qValue = -1;
+    }
+
+    setQValue(value) {
+        this.qValue = value;
     }
 
     hasNoMoves() {
@@ -305,12 +312,21 @@ class LightNode{
     // Assumes that the node is expanded
     bandit() {
 
+        for (var moveKey in this.children) {
+            if (this.FROG === undefined) {
+                this.FROG = 0
+            }
+            else {
+                this.FROG++
+            }
+        }
+
         let randomNumber = Math.floor(Math.random() * this.moves.length)
         if (this.moves[randomNumber] in this.children) {
             return this.children[this.moves[randomNumber]]
         }
+
         else {
-            let randomNumber = Math.floor(Math.random() * this.moves.length)
             this.children[this.moves[randomNumber]]
                 = new LightNode(this, true, this.moves[randomNumber], null)
             return this.children[this.moves[randomNumber]] 
