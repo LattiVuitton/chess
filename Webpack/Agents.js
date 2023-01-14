@@ -369,7 +369,7 @@ class LightMCTS extends Agent{
         this.allExpandedNodes = []
         this.requiresLastPlayerMove = true;
         this.offlineTreeBuilding = true;
-        this.timeLimit = 1//0.1;
+        this.timeLimit = 2//1//0.1;
         this.hasTimeLimit = true;
         this.MIN_ROUNDS = 10;
 
@@ -393,6 +393,10 @@ class LightMCTS extends Agent{
 
     setTimeLimit(timeLimit) {
         this.timeLimit = timeLimit;
+    }
+
+    invertQvalue(value) {
+        return 1 - value;
     }
 
     offlineImproveTree() {
@@ -420,9 +424,17 @@ class LightMCTS extends Agent{
                 searchNode.movesDiscoverd = true;
             }
 
-            searchNode = searchNode.bandit()
-            path.push(searchNode)
+            let next = searchNode.bandit()
 
+            // No moves available
+            // Search node is a terminal node
+            if (next === -1) {
+                break;
+            }
+
+            searchNode = next
+
+            path.push(searchNode)
             this.testGame.move(searchNode.action)
         }
 
@@ -430,11 +442,54 @@ class LightMCTS extends Agent{
         if (searchNode.parent != undefined) {
             preQ = searchNode.parent.qValue
         }
-        searchNode.setQValue(eval.getQValue(this.testGame, searchNode.action, preQ));
 
+        // For unknown reason, node has simply not discovered moves yet
+        if (!searchNode.movesDiscoverd) {
+            searchNode.discoverMoves(this.testGame.moves());
+            searchNode.movesDiscoverd = true;
+        }
+
+        if (searchNode.moves.length === 0) {
+
+            // Node is a terminal position
+            if (this.testGame.isCheckmate()) {
+                searchNode.setQValue(0);
+            }
+
+            else {
+                searchNode.setQValue(0.5);
+            }
+        }
+
+        else {
+            searchNode.setQValue(eval.getQValue(this.testGame, searchNode.action, preQ, searchNode.WorB));
+        }
+
+        // console.log(path)
+
+        // console.log("")
         for (let i = path.length - 1; i >= 0; i--){
             this.testGame.undo(path[i].action)
             path[i].visits++
+            if (i < path.length - 1) {
+                if (this.invertQvalue(path[i + 1].qValue) > path[i].qValue) {
+                    // console.log("Updating node's value from " + path[i].qValue + " to " + this.invertQvalue(path[i + 1].qValue) + " " + i + " " + path[i].id)
+                    path[i].qValue = this.invertQvalue(path[i + 1].qValue);
+                }
+                // if (path[i].WorB === this.WorB) {
+                //     if (this.invertQvalue(path[i + 1].qValue) > path[i].qValue) {
+                //         console.log("Updating my node's value from " + path[i].qValue + " to " + this.invertQvalue(path[i + 1].qValue) + " " + i + " " + path[i].id)
+                //         path[i].qValue = this.invertQvalue(path[i + 1].qValue);
+                //     }
+                // }
+
+                // else {
+                //     if (this.invertQvalue(path[i + 1].qValue) > path[i].qValue) {
+                //         console.log("Updating opponent node's value from " + path[i].qValue + " to " + this.invertQvalue(path[i + 1].qValue) + " " + i + " " + path[i].id)
+                //         path[i].qValue = this.invertQvalue(path[i + 1].qValue);
+                //     }
+                // }
+            }
         }
     }
 
@@ -449,7 +504,7 @@ class LightMCTS extends Agent{
         // Required for avoiding no child expansion
         var roundsCount = 0
 
-        this.rootNode = nodes.getLightNode(null, true, null, board);
+        this.rootNode = nodes.getLightNode(null, this.WorB, null, board);
         this.testGame = new Chess(this.rootNode.board.fen());
 
         this.rat = 0;
@@ -459,18 +514,26 @@ class LightMCTS extends Agent{
             this.improveTree()
         }
 
-        console.log(eval.getCount())
-
-        console.log("Count: " + this.rat)
-
         var counting = 0;
 
-        for (var moveKey in this.rootNode.children) {
-            console.log(this.rootNode.children[moveKey].visits)
-            counting += this.rootNode.children[moveKey].visits
-        }
+        let bestQValue = -1;
+        let bestAction = null;
 
-        return moves[0]
+        console.log("-----------------------------\n")
+
+        for (var moveKey in this.rootNode.children) {
+            console.log("\nMove: " + moveKey)
+            console.log(this.invertQvalue(this.rootNode.children[moveKey].qValue))
+            counting += this.rootNode.children[moveKey].visits
+
+            if (this.invertQvalue(this.rootNode.children[moveKey].qValue) > bestQValue) {
+                bestAction = moveKey;
+                bestQValue = this.invertQvalue(this.rootNode.children[moveKey].qValue);
+            }
+        }
+        console.log("Count: " + this.rat)
+
+        return bestAction
     }
 }
 
