@@ -234,11 +234,6 @@ exports.getNewRoot = function getNode(board, parent, moves, WorB, action) {
 
 exports.getLightNode = function getNode(parent, WorB, action, board) {
 
-    var ownedColor = 'b'
-    if (WorB) {
-        ownedColor = 'w'
-    }
-
     return new LightNode(parent, WorB, action, board)
 }
 
@@ -257,6 +252,7 @@ class LightNode{
         this.parent = parent;
         this.visits = 0;
         this.moves = [];
+        this.WorB = WorB;
 
         this.action = action
 
@@ -312,6 +308,12 @@ class LightNode{
     // Assumes that the node is expanded
     bandit() {
 
+        if (this.moves.length === 0) {
+
+            // -1 indicates terminal node
+            return -1
+        }
+
         for (var moveKey in this.children) {
             if (this.FROG === undefined) {
                 this.FROG = 0
@@ -328,7 +330,7 @@ class LightNode{
 
         else {
             this.children[this.moves[randomNumber]]
-                = new LightNode(this, true, this.moves[randomNumber], null)
+                = new LightNode(this, !this.WorB, this.moves[randomNumber], null)
             return this.children[this.moves[randomNumber]] 
         }
 

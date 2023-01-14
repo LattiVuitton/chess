@@ -85,12 +85,28 @@ exports.getCount = function () {
     return boardsEvaluated
 }
 
+var pieceTaken = false;
+var myColor = 'w';
+
+var myScore = 0
+var oppScore = 0
+
+var tilesList = []
+
 // Used for light nodes
-exports.getQValue = function evaluateBoard(game, action, preEval) {
+exports.getQValue = function evaluateBoard(game, action, preEval, WorB) {
 
     boardsEvaluated++
 
-    var pieceTaken = false;
+    pieceTaken = false;
+
+    if (WorB) {
+        myColor = 'w';
+    }
+
+    else {
+        myColor = 'b';
+    }
 
     if (action != null) {
         stringSan = action.split("")
@@ -103,13 +119,13 @@ exports.getQValue = function evaluateBoard(game, action, preEval) {
     }
 
     if (!pieceTaken && preEval >= 0 && preEval <= 1) {
-        return preEval
+        return 1 - preEval
     }
     
-    var whiteScore = 0
-    var blackScore = 0
+    myScore = 0
+    oppScore = 0
 
-    var tilesList = []
+    tilesList = []
     for (let i = 0; i < letters.length; i++){
         for (let j = 1; j < letters.length + 1; j++){
             // artificialCost(1000)
@@ -117,17 +133,17 @@ exports.getQValue = function evaluateBoard(game, action, preEval) {
             tilesList.push(tile)
             piece = game.get(tile)
             if (piece != false) {
-                if (piece.color === 'w') {
-                    whiteScore += pieceValues[piece.type]
+                if (piece.color === myColor) {
+                    myScore += pieceValues[piece.type]
                 }
                 else {
-                    blackScore += pieceValues[piece.type]
+                    oppScore += pieceValues[piece.type]
                 }
             }
         }
     }
     // console.log(nodeColor + ": " + (myScore + Number.EPSILON) / (myScore + oppScore + Number.EPSILON))
     // console.log("ME: " + whiteScore + " them: " + blackScore)
-    return (whiteScore / (whiteScore + blackScore))
-    return (whiteScore + Number.EPSILON) / (whiteScore + blackScore + Number.EPSILON)
+    // return (myScore / (myScore + oppScore))
+    return (myScore + Number.EPSILON) / (myScore + oppScore + Number.EPSILON)
 }
