@@ -395,6 +395,9 @@ class LightMCTS extends Agent{
         // And copy of previous board
         this.playerMoves = null;
         this.previousBoard = null;
+
+        // How many searches can each tree build perform
+        this.OFFLINE_BATCH_SIZE = 20;
     }
 
     // Set dynamically, including during round
@@ -413,8 +416,13 @@ class LightMCTS extends Agent{
     // Called per frame / as fast as device is capable
     offlineImproveTree() {
 
-        // Main improvement function
-        // this.improveTree(true)
+        // Batch size allows faster search
+        // By maximising against JS natural update limits
+        for (let i = 0; i < this.OFFLINE_BATCH_SIZE; i++){
+
+            // Main improvement function
+            this.improveTree()
+        }
     }
 
     // Always expands exactly one new node
@@ -587,15 +595,19 @@ class LightMCTS extends Agent{
                 // Check if new board matches FEN of delivered board
                 if (tempChess.fen() === board.fen()) {
 
-                    // Don't create new root
-                    newRootRequired = false;
-
                     // Recover root node
                     this.rootNode = this.rootNode.children[this.playerMoves[i]]
 
-                    // Set compulsory board storage
-                    // Only required for roots
-                    this.rootNode.board = board;
+                    // If root node has actually been found
+                    if (this.rootNode != undefined) {
+
+                        // Set compulsory board storage
+                        // Only required for roots
+                        this.rootNode.board = board;
+
+                        // Don't create new root
+                        newRootRequired = false;
+                    }
                 }
 
                 // Undo the player move
@@ -628,11 +640,16 @@ class LightMCTS extends Agent{
         let bestQValue = -1;
         let bestAction = null;
 
+        var summ = 1
+
         // Each child will be discovered by this point
-        for (var moveKey in this.rootNode.children) {;
+        for (var moveKey in this.rootNode.children) {
+            
             // console.log("\nMove: " + moveKey);
             // console.log("Value: " + this.invertQvalue(this.rootNode.children[moveKey].qValue));
             // console.log("Visits: " + this.rootNode.children[moveKey].visits);
+
+            summ += this.rootNode.children[moveKey].visits
 
             // If new move is better
             if (this.invertQvalue(this.rootNode.children[moveKey].qValue) > bestQValue) {
@@ -642,13 +659,20 @@ class LightMCTS extends Agent{
                 bestQValue = this.invertQvalue(this.rootNode.children[moveKey].qValue);
             }
         }
-        console.log("Count: " + this.nodesGenerated);
+        // console.log("Count: " + this.nodesGenerated);
+        // console.log("Sum:   " + (summ - this.nodesGenerated))
 
-        // Set root node and player moves based on the action we have selected
+        // Set player moves based on the action we have selected
         this.playerMoves = this.rootNode.children[bestAction].moves;
+
+        // Create new chess object (copy) and make first move on previous board
         this.previousBoard = new Chess(this.rootNode.board.fen());
         this.previousBoard.move(bestAction)
+        this.testGame = new Chess(this.previousBoard.fen())
+
+        // Set new root node (will be player to move)
         this.rootNode = this.rootNode.children[bestAction];
+        this.rootNode.board = new Chess(this.previousBoard.fen())
 
         // Return action to main app
         return bestAction;

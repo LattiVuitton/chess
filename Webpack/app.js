@@ -1,6 +1,5 @@
 // const printHello = require('./print-hello');
 var agents = require('./Agents');
-var offlineAllow = false;
 
 // No timeout on certain moves
 const NO_TIMEOUT = 0;
@@ -9,6 +8,8 @@ const COVER_TIMEOUT = 50;
 const TINY_TIMEOUT = 15;
 
 var printMoves = false;
+
+var offlineEnabled = true;
 
 var opponent = agents.getAgent("random", 0, true);
 
@@ -50,19 +51,21 @@ function onDragStart(source, piece, position, orientation) {
 }
   
 function makeRandomMove () {
-var possibleMoves = game.moves()
+    var possibleMoves = game.moves()
 
-// game over
-if (possibleMoves.length === 0) return
+    // game over
+    if (possibleMoves.length === 0) return
 
-var randomIdx = Math.floor(Math.random() * possibleMoves.length)
-game.move(possibleMoves[randomIdx])
+    var randomIdx = Math.floor(Math.random() * possibleMoves.length)
+    game.move(possibleMoves[randomIdx])
 }
 
 // Storing the most recent player move
 // Only needed for MCTS agent
 var lastPlayerMove = null
 function onDrop(source, target) {
+
+    treeBuildingAllowed = false;
     
     gameActive = true
 
@@ -163,7 +166,8 @@ resetButton.addEventListener("click", function () {
 }, false);
 
 allowBuilding.addEventListener("click", function () {
-    offlineAllow = !offlineAllow;
+    offlineEnabled = !offlineEnabled
+    console.log("Tree building enabled: " + offlineEnabled)
 }, false);
 
 function resetGame(){
@@ -385,13 +389,11 @@ window.onload = function() {
         // // }
         update()
     }
-    setInterval(test, 1);
+    setInterval(test, 0);
 }
 
 var marker = 0
 function update() {
-    // console.log(Date.now())
-
     if (waitingForComputer) {
         if (marker < 10) {
             marker++
@@ -406,12 +408,9 @@ function update() {
         }
     }
 
-    else if (gameActive && opponent.offlineTreeBuilding && treeBuildingAllowed) {
-        if (offlineAllow) {
-            opponent.offlineImproveTree()
-        }
+    else if (gameActive && opponent.offlineTreeBuilding && treeBuildingAllowed && offlineEnabled) {
+        opponent.offlineImproveTree()
     }
-
 }
 
 var gameActive = false

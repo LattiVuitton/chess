@@ -239,7 +239,6 @@ exports.getLightNode = function getNode(parent, WorB, action, board) {
 
 var lightID = 0;
 function getLightID() {
-    lightID++
     return lightID;
 }
 
@@ -319,7 +318,7 @@ class LightNode{
         let bestAction = null;
 
         var t = this.visits
-        var c = 0.001;
+        var c = 0.00001;
 
         for (let i = 0; i < this.moves.length; i++){
             var action = this.moves[i];
