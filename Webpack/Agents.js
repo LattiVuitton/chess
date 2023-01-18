@@ -116,362 +116,194 @@ class GreedyAgent extends Agent{
     }
 }
 
-class MCTSAgent extends Agent{
-    constructor(id, WorB) {
-        super(id, WorB)
-        this.requiresVerbose = true
-        this.rootNode = null
-        this.rootID = -1
-        this.allExpandedNodes = []
-        this.requiresLastPlayerMove = true;
-        this.offlineTreeBuilding = true;
-        this.timeLimit = 1;
-        this.hasTimeLimit = true;
-        this.MIN_ROUNDS = 10;
-
-        // Indicates what the opponent (human) is faced with at close
-        // Used to retrieve tree from previous state
-        // Value changes at the end of each move
-        this.playerAvailableMoves = null;
-        this.playerBoardState = null;
-
-        this.MAX_PATH_LENGTH = 1000
-        if (WorB) {
-            this.turn = 1
-        }
-        else {
-            this.turn = 2
-        }
-    }
-
-    setTimeLimit(timeLimit) {
-        this.timeLimit = timeLimit;
-    }
-
-    nodeVisited(nodeID) {
-        for (let i = 0; i < this.allExpandedNodes.length; i++){
-            if (nodeID === this.allExpandedNodes[i]) {
-                return true
-            }
-        }
-        return false
-    }
-
-    offlineImproveTree() {
-        this.improveTree(true)
-    }
-
-    improveTree(offline) {
-
-        // console.log("Improving")
-
-        var searchNode = this.rootNode
-
-        if (offline) {
-            if (!searchNode.fullyExplored()) {
-                searchNode.expand()
-            }
-            searchNode = this.rootNode.bandit(0.3)
-        }
-
-        var path = [searchNode]
-        var activeNode = searchNode
-
-        activeNode.visits++
-
-        var expansionNeeded = true;
-
-        // Selection
-        while (activeNode.fullyExplored()) {
-
-            if (activeNode.hasNoMoves()) {
-                expansionNeeded = false;
-                break;
-            }
-
-            if (path.length > this.MAX_PATH_LENGTH) {
-                expansionNeeded = false;
-                break;
-            }
-
-            activeNode = activeNode.bandit()
-            activeNode.visits++
-            path.push(activeNode)
-
-            // // Adding to total visitations
-            // if (!this.nodeVisited(activeNode.id)) {
-            //     this.allExpandedNodes.push(activeNode.id)
-            // }
-        }
-
-        var foundValue = 0
-
-        // Expansion
-        if (expansionNeeded) {
-            foundValue = activeNode.expand(this.WorB)
-        }
-
-
-        var valueToAgent = 0
-        var valueToPlayer = 0
-
-        if (activeNode.matchesAgentColor(this.WorB)) {
-            valueToPlayer = invertEval(foundValue);
-            valueToAgent = foundValue;
-        }
-
-        else {
-            valueToAgent = invertEval(foundValue);
-            valueToPlayer = foundValue;
-        }
-        
-        // Backprop
-        // console.log("")
-
-        // For all nodes except last node in path
-        for (let j = path.length - 2; j >= 0; j--) {
-
-            var pathNode = path[j]
-
-            // If node is unexpanded (no children)
-            if (!expansionNeeded && j === path.length) {
-                console.log("No backprop here")
-            }
-
-            else {
-
-                var keyValue = valueToPlayer;
-
-                if (pathNode.matchesAgentColor(this.WorB)) {
-                    keyValue = valueToAgent;
-                }
-
-                if (keyValue > pathNode.qValue) {
-                    if (j === 1) {
-                        // console.log("Useful")
-                    }
-                    pathNode.bestMoveObject = path[j+1].actionObject
-                    pathNode.updateNodeValue(keyValue)
-                }
-
-                else {
-                    break;
-                }
-            }
-        }
-        // console.log(path)
-    }
-
-    selectMove(board, moves) {
-
-        this.allExpandedNodes = []
-
-        var foundRootNode = false;
-
-
-        if (this.playerAvailableMoves != null) {
-
-            for (let i = 0; i < this.playerAvailableMoves.length; i++){
-
-                var playerMove = this.playerAvailableMoves[i];
-                var boardAfterPlayer = new Chess(this.playerBoardState.board.fen())
-                boardAfterPlayer.move(playerMove.move)
-
-                if (boardAfterPlayer.fen() === board.fen()) {
-                    if (this.playerBoardState != null) {
-                        this.rootNode = this.playerBoardState.childrenDict[playerMove.id]
-                        foundRootNode = true;
-                    }
-                }
-            }
-        }
-
-        // Root node returned is faulty OR couldnt retrieve root
-        if (this.rootNode === null || !foundRootNode) {
-            this.rootNode = nodes.getNewRoot(board, null, board.moves({ verbose: true }), this.WorB, null)
-            console.log("Couldnt retrieve, giving new: " + this.rootNode.id)
-        }
-
-        else {
-            console.log("Found!")
-        }
-
-        this.turn++
-
-        // Time loop
-        var timeLimitSeconds = this.timeLimit * 1000
-        const start = Date.now()
-
-        // Think for at least this number of rounds
-        // Required for avoiding no child expansion
-        var roundsCount = 0
-
-        while (Date.now() - start < timeLimitSeconds || roundsCount < this.MIN_ROUNDS) {
-            roundsCount++
-            this.improveTree(false)
-        }
-
-        var bestMove = null
-        var bestQ = -1
-        var playerState = null
-
-        // For clean code
-        var dictLen = Object.keys(this.rootNode.moveObjects).length
-
-        for (let i = 0; i < dictLen; i++) {
-            var moveObject = this.rootNode.moveObjects[i]
-
-            var opponentNode = this.rootNode.childrenDict[moveObject.id]
-
-            console.log("\nMove: " + moveObject.move.to)
-            console.log("Value: " + round(invertEval(opponentNode.qValue), 4))
-            console.log("Visits: " + opponentNode.visits)
-
-            if (invertEval(opponentNode.qValue) > bestQ) {
-                bestMove = moveObject.move;
-                bestQ = invertEval(opponentNode.qValue);
-                playerState = opponentNode;
-            }
-        }
-
-        if (!playerState.fullyExplored()) {
-            // playerState.expand()
-        }
-
-        // Clear moves available to opponent (human)
-        this.playerAvailableMoves = []
-
-        // State of board being delivered to opponent
-        for (let i = 0; i < playerState.moveObjects.length; i++){
-
-            // Add move to player moves
-            this.playerAvailableMoves.push(playerState.moveObjects[i]);
-
-        }
-
-        // Board state being left to player
-        this.playerBoardState = playerState;
-        this.rootNode = playerState
-        
-        // Best move after Q-value analysis
-        // console.log(round(bestQ,4))
-
-        return bestMove
-    }
-}
-
 class LightMCTS extends Agent{
+
+    // Only set ID and Color from super
     constructor(id, WorB) {
-        super(id, WorB)
-        this.requiresVerbose = true
-        this.rootNode = null
-        this.rootID = -1
-        this.allExpandedNodes = []
-        this.requiresLastPlayerMove = true;
+
+        // Default
+        super(id, WorB);
+
+        // Not really required, but useful in debugging
+        this.requiresVerbose = true;
+
+        // Set after move or recovered from previous moves
+        this.rootNode = null;
+
+        // Allows tree to be built whilst human is thinking
         this.offlineTreeBuilding = true;
-        this.timeLimit = 1//0.1;
+
+        // Set by player throughout
+        // Changeable even mid-game
+        this.timeLimit = 1;
+
+        // Required for app class
         this.hasTimeLimit = true;
+
+        // Required for ultra-low time limit scenarios
         this.MIN_ROUNDS = 10;
-
-        // Indicates what the opponent (human) is faced with at close
-        // Used to retrieve tree from previous state
-        // Value changes at the end of each move
-        this.playerAvailableMoves = null;
-        this.playerBoardState = null;
-
-        this.MAX_PATH_LENGTH = 1000
-        if (WorB) {
-            this.turn = 1
-        }
-        else {
-            this.turn = 2
-        }
 
         // Board constantly being updated
         this.testGame;
     }
 
+    // Set dynamically, including during round
     setTimeLimit(timeLimit) {
         this.timeLimit = timeLimit;
     }
 
+    // All Q-values are for the node's owner
+    // Opponent board Q-values must be inverted
     invertQvalue(value) {
+
+        // Assumes valid value given
         return 1 - value;
     }
 
+    // Called per frame / as fast as device is capable
     offlineImproveTree() {
+
+        // Main improvement function
         // this.improveTree(true)
     }
 
+    // Always expands exactly one new node
+    // Depth of this node depends on tree structure
     improveTree() {
 
-        // console.log("Improving Tree")
+        // Not necessary
+        // Counts how many nodes are expanded
+        // Value is reset after every computer move
+        if (this.nodesGenerated === undefined) {
 
-        if (this.rat === undefined) {
-            this.rat = 0
+            // Initialise
+            this.nodesGenerated = 0;
         }
         else {
-            this.rat++
+
+            // Increment
+            this.nodesGenerated++;
         }
 
+        // Root node should be discovered by this point
+        // Path is created from the root of the tree
         let searchNode = this.rootNode;
         let path = [searchNode];
 
+        // Until new unvisited node is found
         while (searchNode.visits > 0) {
 
-            if (!searchNode.movesDiscoverd) {
-                searchNode.discoverMoves(this.testGame.moves());
-                searchNode.movesDiscoverd = true;
-            }
-
-            let next = searchNode.bandit()
+            // Temporary variable for next node in path
+            let next = searchNode.bandit();
 
             // No moves available
             // Search node is a terminal node
             if (next === -1) {
+
+                // Stop searching from here
                 break;
             }
 
-            searchNode = next
+            // Add next node as the search node
+            searchNode = next;
 
-            path.push(searchNode)
-            this.testGame.move(searchNode.action)
+            // Add next node to the path
+            path.push(searchNode);
+
+            // Using our actual board implementation
+            // Perform discovered move
+            this.testGame.move(searchNode.action);
         }
 
+        // Q-value of final node's parent
         let preQ = -1;
+
+        // If search node is first in the tree
         if (searchNode.parent != undefined) {
-            preQ = searchNode.parent.qValue
+
+            // Retrieving parent value through node data structure
+            preQ = searchNode.parent.qValue;
         }
 
-        // For unknown reason, node has simply not discovered moves yet
+        // Nodes are usually not discovered yet
         if (!searchNode.movesDiscoverd) {
+
+            // Discover moves at this stage
             searchNode.discoverMoves(this.testGame.moves());
             searchNode.movesDiscoverd = true;
         }
 
+        // Only occurs if a terminal state has been reached
+        // Node has already been searched, and has no next state
+        else {
+
+            // No backprop can be performed here
+            // Since minimax-like algorithm is being used
+            return;
+        }
+
+        // If end node has no moves (guaranteed discovered)
         if (searchNode.moves.length === 0) {
 
-            // Node is a terminal position
+            // Checkmate
             if (this.testGame.isCheckmate()) {
+
+                // Always 0 since it is that node's turn
                 searchNode.setQValue(0);
             }
 
+            // Draw
             else {
+
+                // 0.5 for either player
                 searchNode.setQValue(0.5);
             }
         }
 
+        // Node has valid moves
         else {
+
+            // Evaluate and set the node
+            // Use the preQ only if board value is being used (not NN)
             searchNode.setQValue(eval.getQValue(this.testGame, searchNode.action, preQ, searchNode.WorB));
         }
 
+        // Going backwards through the path
         for (let i = path.length - 1; i >= 0; i--){
-            this.testGame.undo(path[i].action)
-            path[i].visits++
+
+            // Undo move from the test board
+            // Save on data storage through no copies
+            this.testGame.undo(path[i].action);
+
+            // Visit node
+            path[i].visits++;
+
+            // Except for the final node
             if (i < path.length - 1) {
+
+                // Update value if better move has been discovered
                 if (this.invertQvalue(path[i + 1].qValue) > path[i].qValue) {
-                    // console.log("Updating node's value from " + path[i].qValue + " to " + this.invertQvalue(path[i + 1].qValue) + " " + i + " " + path[i].id)
+
+                    // Update node value
                     path[i].qValue = this.invertQvalue(path[i + 1].qValue);
+                }
+
+                // No update occurs
+                // No further updates can occur upstream
+                else {
+
+                    // For remaining path
+                    for (let j = i - 1; j >= 0; j--){
+
+                        // Undo move from the test board
+                        this.testGame.undo(path[i].action);
+
+                        // Visit node
+                        path[i].visits++;
+                    }
+
+                    // No further checks needed in this path
+                    break;
                 }
             }
         }
@@ -491,7 +323,7 @@ class LightMCTS extends Agent{
         this.rootNode = nodes.getLightNode(null, this.WorB, null, board);
         this.testGame = new Chess(this.rootNode.board.fen());
 
-        this.rat = 0;
+        this.nodesGenerated = 0;
 
         while (Date.now() - start < (this.timeLimit * 1000) || roundsCount < this.MIN_ROUNDS) {
             roundsCount++
@@ -506,9 +338,9 @@ class LightMCTS extends Agent{
         console.log("-----------------------------\n")
 
         for (var moveKey in this.rootNode.children) {
-            console.log("\nMove: " + moveKey)
-            console.log("Value: " + this.invertQvalue(this.rootNode.children[moveKey].qValue))
-            console.log("Visits: " + this.rootNode.children[moveKey].visits)
+            // console.log("\nMove: " + moveKey)
+            // console.log("Value: " + this.invertQvalue(this.rootNode.children[moveKey].qValue))
+            // console.log("Visits: " + this.rootNode.children[moveKey].visits)
             counting += this.rootNode.children[moveKey].visits
 
             if (this.invertQvalue(this.rootNode.children[moveKey].qValue) > bestQValue) {
@@ -516,7 +348,7 @@ class LightMCTS extends Agent{
                 bestQValue = this.invertQvalue(this.rootNode.children[moveKey].qValue);
             }
         }
-        console.log("Count: " + this.rat)
+        console.log("Count: " + this.nodesGenerated)
 
         return bestAction
     }
