@@ -390,6 +390,11 @@ class LightMCTS extends Agent{
 
         // Board constantly being updated
         this.testGame;
+
+        // Moves the player will choose from
+        // And copy of previous board
+        this.playerMoves = null;
+        this.previousBoard = null;
     }
 
     // Set dynamically, including during round
@@ -541,10 +546,10 @@ class LightMCTS extends Agent{
                     for (let j = i - 1; j >= 0; j--){
 
                         // Undo move from the test board
-                        this.testGame.undo(path[i].action);
+                        this.testGame.undo(path[j].action);
 
                         // Visit node
-                        path[i].visits++;
+                        path[j].visits++;
                     }
 
                     // No further checks needed in this path
@@ -558,13 +563,54 @@ class LightMCTS extends Agent{
     selectMove(board, moves) {
 
         // Time loop
-        const start = Date.now()
+        const start = Date.now();
 
         // Think for at least this number of rounds
         // Required for avoiding no child expansion
-        var roundsCount = 0
+        var roundsCount = 0;
 
-        this.rootNode = nodes.getLightNode(null, this.WorB, null, board);
+        // Old root could not be recovered
+        let newRootRequired = true;
+
+        // If player moves and previous board are stored
+        if (this.playerMoves != null || this.previousBoard != null) {
+
+            // Create new testing chess board
+            let tempChess = new Chess(this.previousBoard.fen())
+
+            // Test each player move
+            for (let i = 0; i < this.playerMoves.length; i++){
+
+                // Make the player move
+                tempChess.move(this.playerMoves[i])
+
+                // Check if new board matches FEN of delivered board
+                if (tempChess.fen() === board.fen()) {
+
+                    // Don't create new root
+                    newRootRequired = false;
+
+                    // Recover root node
+                    this.rootNode = this.rootNode.children[this.playerMoves[i]]
+
+                    // Set compulsory board storage
+                    // Only required for roots
+                    this.rootNode.board = board;
+                }
+
+                // Undo the player move
+                tempChess.undo(this.playerMoves[i])
+            }
+        }
+
+        // If root could not be recovered
+        if (newRootRequired) {
+
+            // Create new root node
+            this.rootNode = nodes.getLightNode(null, this.WorB, null, board);
+        }
+
+        // Create test game based on the given board
         this.testGame = new Chess(this.rootNode.board.fen());
 
         // Reset
@@ -574,8 +620,8 @@ class LightMCTS extends Agent{
         while (Date.now() - start < (this.timeLimit * 1000) || roundsCount < this.MIN_ROUNDS) {
 
             // Increment and improve tree
-            roundsCount++
-            this.improveTree()
+            roundsCount++;
+            this.improveTree();
         }
 
         // Best moves for final search
@@ -583,10 +629,10 @@ class LightMCTS extends Agent{
         let bestAction = null;
 
         // Each child will be discovered by this point
-        for (var moveKey in this.rootNode.children) {
-            // console.log("\nMove: " + moveKey)
-            // console.log("Value: " + this.invertQvalue(this.rootNode.children[moveKey].qValue))
-            // console.log("Visits: " + this.rootNode.children[moveKey].visits)
+        for (var moveKey in this.rootNode.children) {;
+            // console.log("\nMove: " + moveKey);
+            // console.log("Value: " + this.invertQvalue(this.rootNode.children[moveKey].qValue));
+            // console.log("Visits: " + this.rootNode.children[moveKey].visits);
 
             // If new move is better
             if (this.invertQvalue(this.rootNode.children[moveKey].qValue) > bestQValue) {
@@ -596,10 +642,16 @@ class LightMCTS extends Agent{
                 bestQValue = this.invertQvalue(this.rootNode.children[moveKey].qValue);
             }
         }
-        console.log("Count: " + this.nodesGenerated)
+        console.log("Count: " + this.nodesGenerated);
+
+        // Set root node and player moves based on the action we have selected
+        this.playerMoves = this.rootNode.children[bestAction].moves;
+        this.previousBoard = new Chess(this.rootNode.board.fen());
+        this.previousBoard.move(bestAction)
+        this.rootNode = this.rootNode.children[bestAction];
 
         // Return action to main app
-        return bestAction
+        return bestAction;
     }
 }
 
