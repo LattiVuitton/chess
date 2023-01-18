@@ -369,7 +369,7 @@ class LightMCTS extends Agent{
         this.allExpandedNodes = []
         this.requiresLastPlayerMove = true;
         this.offlineTreeBuilding = true;
-        this.timeLimit = 2//1//0.1;
+        this.timeLimit = 1//0.1;
         this.hasTimeLimit = true;
         this.MIN_ROUNDS = 10;
 
@@ -465,9 +465,6 @@ class LightMCTS extends Agent{
             searchNode.setQValue(eval.getQValue(this.testGame, searchNode.action, preQ, searchNode.WorB));
         }
 
-        // console.log(path)
-
-        // console.log("")
         for (let i = path.length - 1; i >= 0; i--){
             this.testGame.undo(path[i].action)
             path[i].visits++
@@ -476,19 +473,6 @@ class LightMCTS extends Agent{
                     // console.log("Updating node's value from " + path[i].qValue + " to " + this.invertQvalue(path[i + 1].qValue) + " " + i + " " + path[i].id)
                     path[i].qValue = this.invertQvalue(path[i + 1].qValue);
                 }
-                // if (path[i].WorB === this.WorB) {
-                //     if (this.invertQvalue(path[i + 1].qValue) > path[i].qValue) {
-                //         console.log("Updating my node's value from " + path[i].qValue + " to " + this.invertQvalue(path[i + 1].qValue) + " " + i + " " + path[i].id)
-                //         path[i].qValue = this.invertQvalue(path[i + 1].qValue);
-                //     }
-                // }
-
-                // else {
-                //     if (this.invertQvalue(path[i + 1].qValue) > path[i].qValue) {
-                //         console.log("Updating opponent node's value from " + path[i].qValue + " to " + this.invertQvalue(path[i + 1].qValue) + " " + i + " " + path[i].id)
-                //         path[i].qValue = this.invertQvalue(path[i + 1].qValue);
-                //     }
-                // }
             }
         }
     }
@@ -523,7 +507,8 @@ class LightMCTS extends Agent{
 
         for (var moveKey in this.rootNode.children) {
             console.log("\nMove: " + moveKey)
-            console.log(this.invertQvalue(this.rootNode.children[moveKey].qValue))
+            console.log("Value: " + this.invertQvalue(this.rootNode.children[moveKey].qValue))
+            console.log("Visits: " + this.rootNode.children[moveKey].visits)
             counting += this.rootNode.children[moveKey].visits
 
             if (this.invertQvalue(this.rootNode.children[moveKey].qValue) > bestQValue) {

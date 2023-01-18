@@ -313,53 +313,45 @@ class LightNode{
             // -1 indicates terminal node
             return -1
         }
-
-        for (var moveKey in this.children) {
-            if (this.FROG === undefined) {
-                this.FROG = 0
-            }
-            else {
-                this.FROG++
-            }
-        }
-
-        let randomNumber = Math.floor(Math.random() * this.moves.length)
-        if (this.moves[randomNumber] in this.children) {
-            return this.children[this.moves[randomNumber]]
-        }
-
-        else {
-            this.children[this.moves[randomNumber]]
-                = new LightNode(this, !this.WorB, this.moves[randomNumber], null)
-            return this.children[this.moves[randomNumber]] 
-        }
-
+        
         // UCB
-        let bestA = -1
+        let bestA = -100
         let bestAction = null;
 
         var t = this.visits
-        var c = 0.5;
-
-        if (cOverride != undefined) {
-            c = cOverride;
-        }
+        var c = 0.001;
 
         for (let i = 0; i < this.moves.length; i++){
-            var actionCheck = this.moveObjects[i];
+            var action = this.moves[i];
 
-            var Q = invertEval(this.childrenDict[actionCheck.id].qValue)
-            var N = this.childrenDict[actionCheck.id].visits
+            var Q = -10
+            var N = Number.EPSILON;
+
+            if (action in this.children) {
+                Q = invertEval(this.children[action].qValue)
+                N = this.children[action].visits
+            }
+
+            else {
+                Q = this.qValue
+            }
 
             var A = Q + c * (Math.log(t) / N)
-
             if (A > bestA) {
                 bestA = A;
-                bestAction = actionCheck
+                bestAction = action
             }
         }
 
-        return this.children[bestAction]
+        if (bestAction in this.children) {
+            return this.children[bestAction]
+        }
+
+        else {
+            this.children[bestAction]
+                = new LightNode(this, !this.WorB, bestAction, null)
+            return this.children[bestAction]
+        }
     }
 
     expand(AgentWorB) {
