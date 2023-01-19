@@ -360,6 +360,7 @@ class MCTSAgent extends Agent{
     }
 }
 
+// More efficient version of the MCTS agent
 class LightMCTS extends Agent{
 
     // Only set ID and Color from super
@@ -379,7 +380,7 @@ class LightMCTS extends Agent{
 
         // Set by player throughout
         // Changeable even mid-game
-        this.timeLimit = 1;
+        this.timeLimit = 1.5;
 
         // Required for app class
         this.hasTimeLimit = true;
@@ -534,7 +535,7 @@ class LightMCTS extends Agent{
             this.testGame.undo(path[i].action);
 
             // Visit node
-            path[i].visits++;
+            path[i].visit();
 
             // Except for the final node
             if (i < path.length - 1) {
@@ -543,7 +544,7 @@ class LightMCTS extends Agent{
                 if (this.invertQvalue(path[i + 1].qValue) > path[i].qValue) {
 
                     // Update node value
-                    path[i].qValue = this.invertQvalue(path[i + 1].qValue);
+                    path[i].setQValue(this.invertQvalue(path[i + 1].qValue));
                 }
 
                 // No update occurs
@@ -557,7 +558,7 @@ class LightMCTS extends Agent{
                         this.testGame.undo(path[j].action);
 
                         // Visit node
-                        path[j].visits++;
+                        path[j].visit();
                     }
 
                     // No further checks needed in this path
@@ -659,7 +660,7 @@ class LightMCTS extends Agent{
                 bestQValue = this.invertQvalue(this.rootNode.children[moveKey].qValue);
             }
         }
-        // console.log("Count: " + this.nodesGenerated);
+        console.log("Count: " + this.nodesGenerated);
         // console.log("Sum:   " + (summ - this.nodesGenerated))
 
         // Set player moves based on the action we have selected
@@ -697,7 +698,7 @@ exports.getAgent = function getAgentType(agentType, id, WorB) {
     const validAgentNames = Object.keys(agentTypesDict)
 
     // Go through dictionary keys
-    for (var i = 0; i < validAgentNames.length; i++){
+    for (let i = 0; i < validAgentNames.length; i++){
 
         // Check for match
         if (validAgentNames[i] === agentType) {
