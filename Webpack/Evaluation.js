@@ -147,3 +147,7 @@ exports.getQValue = function evaluateBoard(game, action, preEval, WorB) {
     // return (myScore / (myScore + oppScore))
     return (myScore + Number.EPSILON) / (myScore + oppScore + Number.EPSILON)
 }
+
+exports.NN = function NeuralNet(game, action, preEval, WorB) {
+    return Math.random();
+}

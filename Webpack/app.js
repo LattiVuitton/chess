@@ -65,10 +65,6 @@ function makeRandomMove () {
 var lastPlayerMove = null
 function onDrop(source, target) {
 
-    treeBuildingAllowed = false;
-    
-    gameActive = true
-
     var promoting = false;
     var newMove = null;
 
@@ -98,6 +94,11 @@ function onDrop(source, target) {
         treeBuildingAllowed = true;
         return 'snapback'
     }
+
+    treeBuildingAllowed = false;
+    
+    gameActive = true
+
 
     if (printMoves) {
         console.log(newMove)
@@ -182,11 +183,13 @@ var randomAgent = document.getElementById("randomAgent");
 var heuristicAgent = document.getElementById("heuristicAgent");
 var MCTSAgent = document.getElementById("MCTSAgent");
 var LightAgent = document.getElementById("LightAgent");
+var GreedyNNAgent = document.getElementById("NNGreedy");
 
 randomAgent.addEventListener("click", function () {changeAgent("random")}, false);
 heuristicAgent.addEventListener("click", function () {changeAgent("heuristic")}, false);
 MCTSAgent.addEventListener("click", function () {changeAgent("MCTS")}, false);
-LightAgent.addEventListener("click", function () {changeAgent("LightMCTSAgent")}, false);
+LightAgent.addEventListener("click", function () { changeAgent("LightMCTSAgent") }, false);
+GreedyNNAgent.addEventListener("click", function () { changeAgent("NNGreedy")}, false)
 
 // Auto set MCTS
 changeAgent("LightMCTSAgent")
@@ -232,6 +235,10 @@ function changeAgent(agentName) {
             
         else if (agentName === "LightMCTSAgent") {
             setOpponent("LightMCTS")
+        }
+            
+        else if (agentName === "NNGreedy") {
+            setOpponent("NNGreedy")
         }
         
         else {

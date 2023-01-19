@@ -104,7 +104,10 @@ class GreedyAgent extends Agent{
 
             // Using piece value evaluation
             // Previous action and evaluation irrelevant here
-            const boardValue = eval.pieceValue(clonedBoard, color, null, 0)
+            
+            //const boardValue = eval.pieceValue(clonedBoard, color, null, 0)
+            const boardValue = eval.NN(clonedBoard, color, null, 0)
+            console.log("wercwercw")
 
             if (boardValue > bestMoveValue) {
                 bestMove = move
@@ -380,7 +383,7 @@ class LightMCTS extends Agent{
 
         // Set by player throughout
         // Changeable even mid-game
-        this.timeLimit = 1.5;
+        this.timeLimit = 1;
 
         // Required for app class
         this.hasTimeLimit = true;
@@ -688,7 +691,8 @@ var agentTypesDict = {
     "alwaysTake": AlwaysTake,
     "greedy": GreedyAgent,
     "MCTS": MCTSAgent,
-    "LightMCTS": LightMCTS
+    "LightMCTS": LightMCTS,
+    "NNGreedy": GreedyAgent
 };
 
 // Returns agent as an object
