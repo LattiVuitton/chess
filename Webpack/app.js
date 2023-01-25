@@ -176,6 +176,7 @@ function resetGame(){
     game = new chess.Chess()
     board.position(game.fen())
     canPickUp = true;
+    gameActive = false;
 }
 
 // Agent listeners --------------------------- start
@@ -374,6 +375,11 @@ function computerMove() {
 
     // Move in internal game
     game.move(nextMove)
+
+    // Check for end of game
+    if (game.isGameOver()) {
+        console.log("Game over")
+    }
 
     // Move on front end board
     window.setTimeout(updateBoard, NO_TIMEOUT)

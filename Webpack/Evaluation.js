@@ -1,3 +1,6 @@
+const stockfish = require('./TestingStockfish');
+
+
 const letters = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h']
 const pieceValues = {
     'p': 1,

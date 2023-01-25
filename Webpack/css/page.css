@@ -1,3 +1,7 @@
 body{
-    background-color: darkslategray;
+    background-color: rgb(52, 52, 103);
+}
+
+button{
+    background-color: rebeccapurple;
 }

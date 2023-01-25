@@ -4,7 +4,7 @@
 }
 
 .board-b72b1{
-    border:2px solid #404040;
+    /* border:2px solid #404040; */
     box-sizing:content-box
 }
 
@@ -20,13 +20,13 @@
 }
 
 .white-1e1d7{
-    background-color:#f0d9b5;
-    color:#b58863
+    background-color:#cfdcf8;
+    color:#687dbf
 }
 
 .black-3c85d{
-    background-color:#b58863;
-    color:#f0d9b5
+    background-color:#92a5e3;
+    color:#687dbf
 }
 
 .highlight1-32417,.highlight2-9c5d2{

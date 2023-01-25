@@ -1,4 +1,5 @@
 const { Chess } = require("chess.js");
+
 const eval = require('./Evaluation');
 const nodes = require('./Nodes');
 
@@ -462,6 +463,11 @@ class LightMCTS extends Agent{
             // Search node is a terminal node
             if (next === -1) {
 
+                console.log("Value: " + searchNode.qValue)
+
+                // Visit node
+                searchNode.visit()
+
                 // Stop searching from here
                 break;
             }
@@ -646,12 +652,14 @@ class LightMCTS extends Agent{
 
         var summ = 1
 
+        console.log("\n--------------------------------")
+
         // Each child will be discovered by this point
         for (var moveKey in this.rootNode.children) {
             
-            // console.log("\nMove: " + moveKey);
-            // console.log("Value: " + this.invertQvalue(this.rootNode.children[moveKey].qValue));
-            // console.log("Visits: " + this.rootNode.children[moveKey].visits);
+            console.log("\nMove: " + moveKey);
+            console.log("Value: " + this.invertQvalue(this.rootNode.children[moveKey].qValue));
+            console.log("Visits: " + this.rootNode.children[moveKey].visits);
 
             summ += this.rootNode.children[moveKey].visits
 
@@ -664,7 +672,7 @@ class LightMCTS extends Agent{
             }
         }
         console.log("Count: " + this.nodesGenerated);
-        // console.log("Sum:   " + (summ - this.nodesGenerated))
+        console.log("Sum:   " + (summ))
 
         // Set player moves based on the action we have selected
         this.playerMoves = this.rootNode.children[bestAction].moves;
