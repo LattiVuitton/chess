@@ -14,6 +14,7 @@
     <h1>Chess</h1>
 </head>
 <body>
+
     <div id="myBoard" style="width: 400px">werc</div>
     <div class="slidecontainer">
         <input type="range" min="1" max="100" value="50" class="slider" id="myRange">
@@ -44,6 +45,14 @@
         <button id="changeTo5">5</button>
     </div>
 
+    <button id="train">Train Model</button>
+
+    <p>Select local CSV File:</p>
+        <input id="csv" type="file">
+
+        <output id="out">
+            file contents will appear here
+        </output>
     <script src="_bundle.js"></script>
 
 </body>

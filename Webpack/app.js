@@ -1,6 +1,8 @@
 // const printHello = require('./print-hello');
 var agents = require('./Agents');
 
+var model = require('./TrainingModel');
+
 // No timeout on certain moves
 const NO_TIMEOUT = 0;
 // Used to cover piece moves

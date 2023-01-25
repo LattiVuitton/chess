@@ -1,4 +1,4 @@
-const stockfish = require('./TestingStockfish');
+// const stockfish = require('./TestingStockfish');
 
 
 const letters = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h']
