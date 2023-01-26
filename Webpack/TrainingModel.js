@@ -1,5 +1,8 @@
 console.log("\nTraining Model...")
 
+// Ensure checkmate always stays more valuable than position
+const CHECKMATE_GAMMA = 0.9;
+
 // Brain data structure
 const brain = require('brain.js');
 
@@ -22,6 +25,14 @@ var fileInput = document.getElementById("csv"),
 
 // Call read csv on change of data
 fileInput.addEventListener('change', readFile);
+
+// Normalise to between 0 and 1
+// Maintains negative/positive sign
+function normalize(value, max, min) {
+
+    // Multiply by leeway to keep under checkmate value of 1
+    return CHECKMATE_GAMMA * (value - min) / (max - min)
+}
 
 // Training function
 function trainNN() {
@@ -54,6 +65,11 @@ function trainNN() {
         // https://www.kaggle.com/datasets/ronakbadhe/chess-evaluations
         
         var sum = 0;
+
+        // NOTES
+        // net.train(ARRAY)
+        // log: (error) => console.log(error),
+        // logPeroid: 100
 
         // Iterate
         for (let i = 0; i < Math.min(100, csvArray.length); i++){
