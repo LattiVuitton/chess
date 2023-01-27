@@ -1,7 +1,7 @@
 // const printHello = require('./print-hello');
 var agents = require('./Agents');
 
-var model = require('./TrainingModel');
+// var model = require('./TrainingModel');
 
 // No timeout on certain moves
 const NO_TIMEOUT = 0;

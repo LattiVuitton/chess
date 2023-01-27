@@ -6,8 +6,8 @@ const MAXBOARDS = 138410;
 const LETTERS = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h']
 
 // How much will we dedicate to training
-const trainingFraction = 0.8;
-const trainNumber = MAXBOARDS * 0.8
+const trainingFraction = 0.97;
+const trainNumber = MAXBOARDS * trainingFraction
 
 // Brain data structure
 const brain = require('brain.js');
@@ -108,17 +108,110 @@ function trainNN() {
 
                 positions = {}
 
+                let rookFound = false;
+                let bishopFound = false;
+                let knightFound = false;
+
+                let brookFound = false;
+                let bbishopFound = false;
+                let bknightFound = false;
+
                 // Board positions
                 for (let j = 0; j < LETTERS.length; j++){
                     for (let k = 0; k < LETTERS.length; k++){
                         let tile = board.get(LETTERS[j] + (k + 1))
                         if (tile != null) {
-                            if (tile.color == 'w' || tile.color == 'b') {
-                                let keyString = LETTERS[j] + (k + 1) + "" + tile.type + tile.color
-                                positions[keyString] = 1
+
+                            rookFound = false;
+                            bishopFound = false;
+                            knightFound = false;
+
+                            brookFound = false;
+                            bbishopFound = false;
+                            bknightFound = false;
+
+                            if (tile.color == 'w') {
+                                if (tile.type == 'p') {
+                                    let keyString = LETTERS[j] + (k + 1) + 'w'
+                                    positions[keyString] = 1
+                                }
+
+                                else if (tile.type == 'q') {
+                                    positions['queen'] = 1
+                                }
+
+                                else if (tile.type == 'b') {
+                                    if (bishopFound) {
+                                        positions['bishop2'] = 1
+                                    }
+                                    else {
+                                        positions['bishop1'] = 1
+                                        bishopFound
+                                    }
+                                }
+
+                                else if (tile.type == 'n') {
+                                    if (knightFound) {
+                                        positions['knight2'] = 1
+                                    }
+                                    else {
+                                        positions['knight1'] = 1
+                                        knightFound
+                                    }
+                                }
+
+                                else if (tile.type == 'r') {
+                                    if (rookFound) {
+                                        positions['rook2'] = 1
+                                    }
+                                    else {
+                                        positions['rook1'] = 1
+                                        rookFound
+                                    }
+                                }
+                            }
+
+                            else if (tile.color == 'b') {
+                                if (tile.type == 'p') {
+                                    let keyString = LETTERS[j] + (k + 1) + 'b'
+                                    positions[keyString] = 1
+                                }
+
+                                else if (tile.type == 'q') {
+                                    positions['Bqueen'] = 1
+                                }
+
+                                else if (tile.type == 'b') {
+                                    if (bbishopFound) {
+                                        positions['Bbishop2'] = 1
+                                    }
+                                    else {
+                                        positions['Bbishop1'] = 1
+                                        bbishopFound
+                                    }
+                                }
+
+                                else if (tile.type == 'n') {
+                                    if (bknightFound) {
+                                        positions['Bknight2'] = 1
+                                    }
+                                    else {
+                                        positions['Bknight1'] = 1
+                                        bknightFound
+                                    }
+                                }
+
+                                else if (tile.type == 'r') {
+                                    if (brookFound) {
+                                        positions['Brook2'] = 1
+                                    }
+                                    else {
+                                        positions['Brook1'] = 1
+                                        brookFound
+                                    }
+                                }
                             }
                         }
-
                     }
                 }
 
@@ -128,6 +221,7 @@ function trainNN() {
                         output: [eval]
                     })
                 }
+
                 else {
                     evaluationData.push({
                         input: positions,
@@ -140,9 +234,10 @@ function trainNN() {
         console.log("Training Now")
 
         const net = new brain.NeuralNetwork({
-            hiddenLayers: [50],
+            hiddenLayers: [30,20],
             errorThresh: 0.0005,
-            iterations: 100,
+            iterations: 200,
+            learningRate: 0.2,
         })
 
         console.log(trainingData)
@@ -161,7 +256,6 @@ function trainNN() {
             console.log((net.run(evaluationData[i].input)) + "\n\n");
             xyValues.push({x: evaluationData[i].output[0], y: net.run(evaluationData[i].input)})
         }
-
 
         new Chart("myChart", {
         type: "scatter",
