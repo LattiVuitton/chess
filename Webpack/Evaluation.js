@@ -140,8 +140,59 @@ let blackKingEnd = [
     [-30,-20,-10,  0,  0,-10,-20,-30],
     [-50,-40,-30,-20,-20,-30,-40,-50]
 ]
+let whitePieces = {
+    'p': whitePawns,
+    'n': whiteKnights,
+    'b': whiteBishops,
+    'r': whiteRooks,
+    'q': whiteQueen,
+}
+let blackPieces = {
+    'p': blackPawns,
+    'n': blackKnights,
+    'b': blackBishops,
+    'r': blackRooks,
+    'q': blackQueen,
+}
+let earlyKings = {
+    'w': whiteKingEarly,
+    'b': blackKingEarly
+}
+let endKings = {
+    'w': whiteKingEnd,
+    'b': blackKingEnd
+}
+let piecesDict = {
+    'w': whitePieces,
+    'b': blackPieces
+}
 
+function getPieceValue(letter, number, type, color, endGame) {
+    if (type === 'k') {
+        if (endGame) {
+            return endKings[color[
 
+            ]]
+        }
+
+        return earlyKings[color[
+
+        ]]
+    }
+
+    else {
+        try {
+            return piecesDict[color[type[
+
+            ]]]
+        }
+
+        catch {
+            console.log("Error finding tile")
+            return null;
+        }
+    }
+}
 
 const letters = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h']
 const pieceValues = {
