@@ -21,7 +21,7 @@ let blackPawns = [
     [0, 0, 0, 0, 0, 0, 0, 0]
 ]
 let whiteKnights = [
-    [-50, -40, -30, -30, -30, -40, -50],
+    [-50, -40, -30, -30, -30, -30, -40, -50],
     [-40, -20, 0, 0, 0, 0, -20, -40],
     [-30, 0, 10, 15, 15, 10, 0, -30],
     [-30, 5, 15, 20, 20, 15, 5, -30],
@@ -31,7 +31,7 @@ let whiteKnights = [
     [-50,-40,-30,-30,-30,-30,-40,-50]
 ]
 let blackKnights = [
-    [-50, -40, -30, -30, -30, -40, -50],
+    [-50, -40, -30, -30, -30, -30, -40, -50],
     [-40, -20, 0, 5, 5, 0, -20, -40],
     [-30, 5, 10, 15, 15, 10, 5, -30],
     [-30, 0, 15, 20, 20, 15, 0, -30],
@@ -167,24 +167,35 @@ let piecesDict = {
     'b': blackPieces
 }
 
+let lettersToNumbers = {
+    'a': 0,
+    'b': 1,
+    'c': 2,
+    'd': 3,
+    'e': 4,
+    'f': 5,
+    'g': 6,
+    'h': 7
+}
+
+// Takes number between 1 and 8, and returns inverse between 0 and 7
+function swapNumber(rowNumber) {
+    return 8 - rowNumber
+}
+
 function getPieceValue(letter, number, type, color, endGame) {
     if (type === 'k') {
-        if (endGame) {
-            return endKings[color[
 
-            ]]
+        if (endGame) {
+            return endKings[color][swapNumber(number)][lettersToNumbers[letter]]
         }
 
-        return earlyKings[color[
-
-        ]]
+        return earlyKings[color][swapNumber(number)][lettersToNumbers[letter]]
     }
 
     else {
         try {
-            return piecesDict[color[type[
-
-            ]]]
+            return piecesDict[color][type][swapNumber(number)][lettersToNumbers[letter]]
         }
 
         catch {
@@ -348,6 +359,61 @@ exports.NN = function NeuralNet(game, action, preEval, WorB) {
     return Math.random();
 }
 
+let myPositionScore = 0
+let opPositionScore = 0
+
+let testPiece = null;
+
 exports.complexEval = function compEval(game, action, preEval, WorB) {
-    if (preEval)
+    if (preEval) {
+        1
+    }
+
+    if (WorB) {
+        myTeamColor = 'w';
+    }
+
+    else {
+        myTeamColor = 'b';
+    }
+
+    myPositionScore = 0
+    opPositionScore = 0
+
+    let whiteList = []
+    let blackList = []
+
+    let syncwhite = []
+    let syncblack = []
+
+    // If required
+    for (let i = 0; i < letters.length; i++) {
+        for (let j = 1; j < letters.length + 1; j++) {
+            testPiece = game.get(letters[i] + j)
+            if (testPiece != false) {
+                if (testPiece.color === myTeamColor) {
+                    // console.log("Adding " + getPieceValue(letters[i], j, testPiece.type, testPiece.color)
+                    //  + " for " + testPiece.color + ".")
+                    whiteList.push(getPieceValue(letters[i], j, testPiece.type, testPiece.color))
+                    syncwhite.push(testPiece.type)
+                    myPositionScore += getPieceValue(letters[i],j,testPiece.type,testPiece.color)
+                }
+                else {
+                    blackList.push(getPieceValue(letters[i], j, testPiece.type, testPiece.color))
+                    syncblack.push(testPiece.type)
+                    opPositionScore += getPieceValue(letters[i],j,testPiece.type,testPiece.color)
+                }
+            }
+        }
+    }
+
+    // console.log(game.fen())
+    // console.log(whiteList)
+    // console.log(blackList)
+    // console.log(syncwhite)
+    // console.log(syncblack)
+    // console.log(myPositionScore)
+    // console.log(opPositionScore + "\n\n")
+
+    return (myPositionScore / (opPositionScore + myPositionScore))
 }

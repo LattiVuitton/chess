@@ -11,7 +11,7 @@ const TINY_TIMEOUT = 15;
 
 var printMoves = false;
 
-var offlineEnabled = true;
+var offlineEnabled = false;
 
 var opponent = agents.getAgent("random", 0, true);
 

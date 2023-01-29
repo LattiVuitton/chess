@@ -63,7 +63,7 @@ class Node {
         if (this.parent != null) {
             tempParentQ = this.parent.qValue;
         }
-        var tempQ = eval.pieceValue(this.board, this.ownerColor, this.action, tempParentQ);
+        var tempQ = eval.complexEval(this.board, this.ownerColor, this.action, tempParentQ);
 
         // this.bestMoveValue = this.qValue;
         // console.log("From node creation")

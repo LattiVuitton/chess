@@ -533,7 +533,7 @@ class LightMCTS extends Agent{
 
             // Evaluate and set the node
             // Use the preQ only if board value is being used (not NN)
-            searchNode.setQValue(eval.getQValue(this.testGame, searchNode.action, preQ, searchNode.WorB));
+            searchNode.setQValue(eval.complexEval(this.testGame, searchNode.action, preQ, searchNode.WorB));
         }
 
         // Going backwards through the path
