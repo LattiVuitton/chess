@@ -380,6 +380,7 @@ exports.complexEval = function compEval(game, action, preEval, WorB) {
     myPositionScore = 0
     opPositionScore = 0
 
+
     let whiteList = []
     let blackList = []
 
@@ -415,5 +416,6 @@ exports.complexEval = function compEval(game, action, preEval, WorB) {
     // console.log(myPositionScore)
     // console.log(opPositionScore + "\n\n")
 
-    return (myPositionScore / (opPositionScore + myPositionScore))
+    console.log("Returning: " + (0.5 + 0.001 * (myPositionScore - opPositionScore)))
+    return (0.5 + 0.001 * (myPositionScore - opPositionScore))
 }
