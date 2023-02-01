@@ -531,10 +531,18 @@ class LightMCTS extends Agent{
         // Node has valid moves
         else {
 
+            // if (searchNode.action != null) {
+            //     this.testGame.undo(searchNode.action)
+            //     console.log(this.testGame.moves({ , }))
+            //     this.testGame.move(searchNode.action)
+            // }
+
             // Evaluate and set the node
             // Use the preQ only if board value is being used (not NN)
             searchNode.setQValue(eval.complexEval(this.testGame, searchNode.action, preQ, searchNode.WorB));
         }
+
+        // console.log(path)
 
         // Going backwards through the path
         for (let i = path.length - 1; i >= 0; i--){

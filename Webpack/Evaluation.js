@@ -205,6 +205,13 @@ function getPieceValue(letter, number, type, color, endGame) {
     }
 }
 
+// Max and min possible board position
+const MAX_BOARD_POSITION = 905;
+const MIN_BOARD_POSITION = -905;
+
+const MAX_BOARD = 41.52
+const MIN_BOARD = -41.52
+
 const letters = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h']
 const pieceValues = {
     'p': 1,
@@ -212,7 +219,7 @@ const pieceValues = {
     'b': 3.33,
     'r': 5.63,
     'q': 9.5,
-    'k': 0
+    'k': 100
 }
 
 var boardsEvaluated = 0;
@@ -296,7 +303,7 @@ var pieceTaken = false;
 var myColor = 'w';
 
 var myScore = 0
-var oppScore = 0
+var opScore = 0
 
 var tilesList = []
 
@@ -330,7 +337,7 @@ exports.getQValue = function evaluateBoard(game, action, preEval, WorB) {
     } 
     
     myScore = 0
-    oppScore = 0
+    opScore = 0
 
     tilesList = []
     for (let i = 0; i < letters.length; i++){
@@ -344,7 +351,7 @@ exports.getQValue = function evaluateBoard(game, action, preEval, WorB) {
                     myScore += pieceValues[piece.type]
                 }
                 else {
-                    oppScore += pieceValues[piece.type]
+                    opScore += pieceValues[piece.type]
                 }
             }
         }
@@ -352,7 +359,7 @@ exports.getQValue = function evaluateBoard(game, action, preEval, WorB) {
     // console.log(nodeColor + ": " + (myScore + Number.EPSILON) / (myScore + oppScore + Number.EPSILON))
     // console.log("ME: " + whiteScore + " them: " + blackScore)
     // return (myScore / (myScore + oppScore))
-    return (myScore + Number.EPSILON) / (myScore + oppScore + Number.EPSILON)
+    return (myScore + Number.EPSILON) / (myScore + opScore + Number.EPSILON)
 }
 
 exports.NN = function NeuralNet(game, action, preEval, WorB) {
@@ -364,9 +371,22 @@ let opPositionScore = 0
 
 let testPiece = null;
 
-exports.complexEval = function compEval(game, action, preEval, WorB) {
-    if (preEval) {
-        1
+let foundPreEval = true;
+
+exports.complexEval = function compEval(game, action, preEval, WorB, actions) {
+
+
+    foundPreEval = true;
+
+    if (preEval >= 0 && preEval <= 1) {
+        if (action != null) {
+            if (action.split("")[1] === 'x') {
+                // console.log(action)
+
+                pieceTaken = true;
+            }
+
+        }
     }
 
     if (WorB) {
@@ -380,12 +400,8 @@ exports.complexEval = function compEval(game, action, preEval, WorB) {
     myPositionScore = 0
     opPositionScore = 0
 
-
-    let whiteList = []
-    let blackList = []
-
-    let syncwhite = []
-    let syncblack = []
+    myScore = 0
+    opScore = 0
 
     // If required
     for (let i = 0; i < letters.length; i++) {
@@ -393,29 +409,19 @@ exports.complexEval = function compEval(game, action, preEval, WorB) {
             testPiece = game.get(letters[i] + j)
             if (testPiece != false) {
                 if (testPiece.color === myTeamColor) {
-                    // console.log("Adding " + getPieceValue(letters[i], j, testPiece.type, testPiece.color)
-                    //  + " for " + testPiece.color + ".")
-                    whiteList.push(getPieceValue(letters[i], j, testPiece.type, testPiece.color))
-                    syncwhite.push(testPiece.type)
-                    myPositionScore += getPieceValue(letters[i],j,testPiece.type,testPiece.color)
+                    myPositionScore += getPieceValue(letters[i], j, testPiece.type, testPiece.color)
+                    myScore += pieceValues[testPiece.type]
                 }
                 else {
-                    blackList.push(getPieceValue(letters[i], j, testPiece.type, testPiece.color))
-                    syncblack.push(testPiece.type)
-                    opPositionScore += getPieceValue(letters[i],j,testPiece.type,testPiece.color)
+                    opPositionScore += getPieceValue(letters[i], j, testPiece.type, testPiece.color)
+                    opScore += pieceValues[testPiece.type]
                 }
             }
         }
     }
 
-    // console.log(game.fen())
-    // console.log(whiteList)
-    // console.log(blackList)
-    // console.log(syncwhite)
-    // console.log(syncblack)
-    // console.log(myPositionScore)
-    // console.log(opPositionScore + "\n\n")
-
-    console.log("Returning: " + (0.5 + 0.001 * (myPositionScore - opPositionScore)))
-    return (0.5 + 0.001 * (myPositionScore - opPositionScore))
+    return (
+        0.05 * ((myPositionScore - opPositionScore - MIN_BOARD_POSITION) / (MAX_BOARD_POSITION - MIN_BOARD_POSITION)) + 
+        0.95 * ((myScore - opScore - MIN_BOARD) / (MAX_BOARD - MIN_BOARD))
+    )
 }
