@@ -239,7 +239,7 @@ exports.getLightNode = function getNode(parent, WorB, action, board) {
 
 // Bandit temporary values
 // Saves on designation efficiency
-const C_VALUE = 0.001;
+const C_VALUE = 0.1;
 let t_value = 0;
 let q_value = 0;
 let n_value = 0;

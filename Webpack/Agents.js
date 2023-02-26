@@ -463,8 +463,6 @@ class LightMCTS extends Agent{
             // Search node is a terminal node
             if (next === -1) {
 
-                console.log("Value: " + searchNode.qValue)
-
                 // Visit node
                 searchNode.visit()
 
@@ -542,7 +540,8 @@ class LightMCTS extends Agent{
             searchNode.setQValue(eval.complexEval(this.testGame, searchNode.action, preQ, searchNode.WorB));
         }
 
-        // console.log(path)
+        // Bool for updating nodes when opponent has found a better move (for them)
+        let nextNodeChanged = false;
 
         // Going backwards through the path
         for (let i = path.length - 1; i >= 0; i--){
@@ -558,10 +557,33 @@ class LightMCTS extends Agent{
             if (i < path.length - 1) {
 
                 // Update value if better move has been discovered
-                if (this.invertQvalue(path[i + 1].qValue) > path[i].qValue) {
+                if (this.invertQvalue(path[i + 1].qValue) > path[i].qValue && false) {
 
                     // Update node value
                     path[i].setQValue(this.invertQvalue(path[i + 1].qValue));
+
+                    // Since this node has changed, next node may also change for worse
+                    nextNodeChanged = true;
+                }
+
+                // Only relevant if opponent response has decreased value of this node
+                else if (nextNodeChanged || true) {
+                    // console.log(path[i].qValue)
+
+                    let maxQValue = -1;
+
+                    for (let key in path[i].children){
+                        if (this.invertQvalue(path[i].children[key].qValue) > maxQValue) {
+                            maxQValue = this.invertQvalue(path[i].children[key].qValue);
+                        }
+                    }
+                    
+                    path[i].setQValue(maxQValue);
+
+                    // if (maxQValue < path[i].qValue && maxQValue >= 0) {
+                    //     console.log(maxQValue)
+                    //     path[i].setQValue(maxQValue);
+                    // }
                 }
 
                 // No update occurs
