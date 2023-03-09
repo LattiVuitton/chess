@@ -224,6 +224,8 @@ const pieceValues = {
 
 var boardsEvaluated = 0;
 
+var isEarlyGame = true;
+
 exports.evaluateBoard = function evaluate(game) {
 
     // Evaluation
@@ -262,8 +264,6 @@ exports.pieceValue = function countPieces(game, nodeColor, action, preEval) {
         return preEval
     }
     
-    console.log(game.fen())
-
     var myScore = 0
     var oppScore = 0
 
@@ -374,7 +374,20 @@ let testPiece = null;
 let foundPreEval = true;
 
 exports.complexEval = function compEval(game, action, preEval, WorB, actions) {
+    
+    if (isEarlyGame) {
+        return earlyGameEval(game, action, preEval, WorB, actions)
+    }
 
+    else {
+        return lateGameEval(game, action, preEval, WorB, actions)
+    }
+}
+
+
+function earlyGameEval(game, action, preEval, WorB, actions) {
+
+    console.log(actions)
 
     foundPreEval = true;
 
@@ -424,4 +437,8 @@ exports.complexEval = function compEval(game, action, preEval, WorB, actions) {
         0.05 * ((myPositionScore - opPositionScore - MIN_BOARD_POSITION) / (MAX_BOARD_POSITION - MIN_BOARD_POSITION)) + 
         0.95 * ((myScore - opScore - MIN_BOARD) / (MAX_BOARD - MIN_BOARD))
     )
+}
+
+function lateGameEval(game, action, preEval, WorB, actions) {
+    return 0
 }
