@@ -107,7 +107,6 @@ exports.getQValue = function evaluateBoard(game, action, preEval, WorB) {
     tilesList = []
     for (let i = 0; i < letters.length; i++){
         for (let j = 1; j < letters.length + 1; j++){
-            // artificialCost(1000)
             tile = letters[i] + j
             tilesList.push(tile)
             piece = game.get(tile)
