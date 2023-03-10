@@ -244,7 +244,6 @@ function artificialCost(cost) {
     if (1 / count > 100000) {
         console.log("A miracle: " + (1/count))
     }
-
 }
 
 exports.pieceValue = function countPieces(game, nodeColor, action, preEval) {
@@ -371,14 +370,6 @@ let testPiece = null;
 
 exports.complexEval = function compEval(game, action, preEval, WorB, actions) {
     
-    // Add:
-
-    // Pawns:
-    // Passed pawn (?)
-    // Doubled pawns
-    // Isolated vs Connected
-    // Backward
-
     // Mobility
     // King safety
 
@@ -398,6 +389,10 @@ let opPawnInRow = false
 let multiplier = 1
 
 const DOUBLED_PAWN_PENALTY = 1
+const PASSED_PAWN_REWARD = 1
+const CONNECTED_FLAT_REWARD = 1
+const CONNECTED_STEP_REWARD = 1.1
+const MAX_PAWN_STRUCTURE = 0
 
 function earlyGameEval(game, action, preEval, WorB, actions) {
 
@@ -408,14 +403,16 @@ function earlyGameEval(game, action, preEval, WorB, actions) {
     positionScore = 0
     valueScore = 0
 
-    // If required
+    // Looping through files
     for (let i = 0; i < letters.length; i++) {
 
         myPawnInRow = false
         opPawnInRow = false
 
+        // Looping through rows
         for (let j = 1; j < letters.length + 1; j++) {
             testPiece = game.get(letters[i] + j)
+            
             if (testPiece != false) {
 
                 // Set multiplier depending on team
@@ -429,13 +426,47 @@ function earlyGameEval(game, action, preEval, WorB, actions) {
                 // Pawn structure work
                 if (testPiece.type === 'p') {
 
+                    // Only for files a to g, excluding row 1 and 8
+                    if (i < letters.length - 1 && j < 8 && j > 1) {
+
+                        // If adjacent pawn of my color is mine
+                        if (game.get(letters[i + 1] + j).type === 'p') {
+                            
+                            // If color matches
+                            if (game.get(letters[i + 1] + j).color === testPiece.color) {
+
+                                pawnStructure += multiplier * CONNECTED_FLAT_REWARD
+                            }
+                        }
+
+                        // If forward stepped pawn of my color is mine
+                        if (game.get(letters[i + 1] + (j+1)).type === 'p') {
+                            
+                            // If color matches
+                            if (game.get(letters[i + 1] + (j+1)).color === testPiece.color) {
+
+                                pawnStructure += multiplier * CONNECTED_STEP_REWARD
+                            }
+                        }
+
+                        // If forward stepped pawn of my color is mine
+                        if (game.get(letters[i + 1] + (j-1)).type === 'p') {
+                            
+                            // If color matches
+                            if (game.get(letters[i + 1] + (j-1)).color === testPiece.color) {
+
+                                pawnStructure += multiplier * CONNECTED_STEP_REWARD
+                            }
+                        }
+                    }
+
                     // Requires check again (improve later)
                     if (testPiece.color === myTeamColor) {
 
                         if (myPawnInRow) {
 
                             // Doubled pawn
-                            pawnStructure += DOUBLED_PAWN_PENALTY
+                            pawnStructure -= DOUBLED_PAWN_PENALTY
                         }
 
                         else {
@@ -449,7 +480,7 @@ function earlyGameEval(game, action, preEval, WorB, actions) {
                         if (opPawnInRow) {
 
                             // Doubled pawn
-                            pawnStructure -= DOUBLED_PAWN_PENALTY
+                            pawnStructure += DOUBLED_PAWN_PENALTY
                         }
 
                         else {
@@ -459,7 +490,23 @@ function earlyGameEval(game, action, preEval, WorB, actions) {
                 }
             }
         }
+
+        // Checking for passed pawns (no hanging pawn check yet)
+        if (myPawnInRow) {
+
+            // Passed pawn for me
+            if (!opPawnInRow) {
+                pawnStructure += PASSED_PAWN_REWARD;
+            }
+        }
+
+        // Opponent has passed pawn
+        else if (!opPawnInRow) {
+            pawnStructure -= PASSED_PAWN_REWARD;
+        }
     }
+
+    console.log(pawnStructure)
 
     return (
         0.05 * ((positionScore - MIN_BOARD_POSITION) / (MAX_BOARD_POSITION - MIN_BOARD_POSITION)) + 
