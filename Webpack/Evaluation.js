@@ -132,7 +132,7 @@ let whiteKingEnd = [
 ]
 let blackKingEnd = [
     [-50,-30,-30,-30,-30,-30,-30,-50],
-    [-50,-30,-30,-30,-30,-30,-30,-50]
+    [-50,-30,-30,-30,-30,-30,-30,-50],
     [-30,-10, 20, 30, 30, 20,-10,-30],
     [-30,-10, 30, 40, 40, 30,-10,-30],
     [-30,-10, 30, 40, 40, 30,-10,-30],
@@ -188,7 +188,6 @@ function getPieceValue(letter, number, type, color, endGame) {
     if (type === 'k') {
 
         if (endGame) {
-            console.log("end")
             return endKings[color][swapNumber(number)][lettersToNumbers[letter]]
         }
 
@@ -235,6 +234,9 @@ const PASSED_PAWN_REWARD = 2
 const CONNECTED_FLAT_REWARD = 1
 const CONNECTED_STEP_REWARD = 1.1
 
+// Material threshold for game being considered end game (exclude kings)
+const END_GAME_THRESHOLD = 35;
+
 // For normalising pawn structure eval
 const MAX_PAWN_STRUCTURE =
     7 * DOUBLED_PAWN_PENALTY + 
@@ -254,6 +256,7 @@ const pieceValues = {
 
 // Changes balance of algorithm
 var isEarlyGame = true;
+var isEndGame = false;
 
 let valueScore = 0
 let positionScore = 0
@@ -282,6 +285,34 @@ let positionWeightEarly = 0.10
 let mobilityWeightEarly = 0.01
 let pawnsWeightEarly = 0.04
 
+// Set from agents
+exports.updateGamePeriod = function updateGamePeriod(board) {
+
+    let totalMaterial = 0
+
+    // Looping through files
+    for (let i = 0; i < letters.length; i++) {
+        // Looping through rows
+        for (let j = 1; j < letters.length + 1; j++) {
+            piece = board.get(letters[i] + j)
+            if (piece) {
+                totalMaterial += pieceValues[piece.type]
+            }
+        }
+    }
+
+    // Early/Mid game
+    if (totalMaterial > END_GAME_THRESHOLD) {
+        setGamePeriod(true)
+    }
+
+    // End game
+    else {
+        setGamePeriod(false)
+    }
+}
+
+// Early game/end game
 function setGamePeriod(earlyGame) {
     isEarlyGame = earlyGame;
 
@@ -300,7 +331,7 @@ function setGamePeriod(earlyGame) {
     }
 }
 
-exports.complexEval = function earlyGameEval(game, WorB, actionsLength) {
+exports.complexEval = function earlyGameEval(game, WorB, actionsLength, preQ) {
 
     // Set team color
     if (WorB) { myTeamColor = 'w'; }
@@ -414,6 +445,7 @@ exports.complexEval = function earlyGameEval(game, WorB, actionsLength) {
         }
     }
 
+    // Sum weight
     return (
         positionWeight * ((positionScore - MIN_BOARD_POSITION) / (MAX_BOARD_POSITION - MIN_BOARD_POSITION)) +
         valueWeight * ((valueScore - MIN_BOARD) / (MAX_BOARD - MIN_BOARD)) +
