@@ -302,8 +302,7 @@ exports.getCount = function () {
 var pieceTaken = false;
 var myColor = 'w';
 
-var myScore = 0
-var opScore = 0
+var valueScore = 0
 
 var tilesList = []
 
@@ -366,15 +365,24 @@ exports.NN = function NeuralNet(game, action, preEval, WorB) {
     return Math.random();
 }
 
-let myPositionScore = 0
-let opPositionScore = 0
+let positionScore = 0
 
 let testPiece = null;
 
-let foundPreEval = true;
-
 exports.complexEval = function compEval(game, action, preEval, WorB, actions) {
     
+    // Add:
+
+    // Pawns:
+    // Passed pawn (?)
+    // Doubled pawns
+    // Isolated vs Connected
+    // Backward
+
+    // Mobility
+    // King safety
+
+
     if (isEarlyGame) {
         return earlyGameEval(game, action, preEval, WorB, actions)
     }
@@ -384,58 +392,78 @@ exports.complexEval = function compEval(game, action, preEval, WorB, actions) {
     }
 }
 
+let pawnStructure = 0
+let myPawnInRow = false
+let opPawnInRow = false
+let multiplier = 1
+
+const DOUBLED_PAWN_PENALTY = 1
 
 function earlyGameEval(game, action, preEval, WorB, actions) {
 
-    console.log(actions)
+    if (WorB) { myTeamColor = 'w'; }
+    else { myTeamColor = 'b'; }
 
-    foundPreEval = true;
-
-    if (preEval >= 0 && preEval <= 1) {
-        if (action != null) {
-            if (action.split("")[1] === 'x') {
-                // console.log(action)
-
-                pieceTaken = true;
-            }
-
-        }
-    }
-
-    if (WorB) {
-        myTeamColor = 'w';
-    }
-
-    else {
-        myTeamColor = 'b';
-    }
-
-    myPositionScore = 0
-    opPositionScore = 0
-
-    myScore = 0
-    opScore = 0
+    pawnStructure = 0
+    positionScore = 0
+    valueScore = 0
 
     // If required
     for (let i = 0; i < letters.length; i++) {
+
+        myPawnInRow = false
+        opPawnInRow = false
+
         for (let j = 1; j < letters.length + 1; j++) {
             testPiece = game.get(letters[i] + j)
             if (testPiece != false) {
-                if (testPiece.color === myTeamColor) {
-                    myPositionScore += getPieceValue(letters[i], j, testPiece.type, testPiece.color)
-                    myScore += pieceValues[testPiece.type]
-                }
-                else {
-                    opPositionScore += getPieceValue(letters[i], j, testPiece.type, testPiece.color)
-                    opScore += pieceValues[testPiece.type]
+
+                // Set multiplier depending on team
+                if (testPiece.color === myTeamColor) { multiplier = 1 }
+                else { multiplier = -1 }
+
+                // Score additions
+                positionScore += multiplier * getPieceValue(letters[i], j, testPiece.type, testPiece.color)
+                valueScore += multiplier * pieceValues[testPiece.type]
+
+                // Pawn structure work
+                if (testPiece.type === 'p') {
+
+                    // Requires check again (improve later)
+                    if (testPiece.color === myTeamColor) {
+
+                        if (myPawnInRow) {
+
+                            // Doubled pawn
+                            pawnStructure += DOUBLED_PAWN_PENALTY
+                        }
+
+                        else {
+                            myPawnInRow = true
+                        }
+                    }
+
+                    // Opponent pawn
+                    else {
+
+                        if (opPawnInRow) {
+
+                            // Doubled pawn
+                            pawnStructure -= DOUBLED_PAWN_PENALTY
+                        }
+
+                        else {
+                            opPawnInRow = true
+                        }
+                    }
                 }
             }
         }
     }
 
     return (
-        0.05 * ((myPositionScore - opPositionScore - MIN_BOARD_POSITION) / (MAX_BOARD_POSITION - MIN_BOARD_POSITION)) + 
-        0.95 * ((myScore - opScore - MIN_BOARD) / (MAX_BOARD - MIN_BOARD))
+        0.05 * ((positionScore - MIN_BOARD_POSITION) / (MAX_BOARD_POSITION - MIN_BOARD_POSITION)) + 
+        0.95 * ((valueScore - MIN_BOARD) / (MAX_BOARD - MIN_BOARD))
     )
 }
 
