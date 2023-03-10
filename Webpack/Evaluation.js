@@ -188,6 +188,7 @@ function getPieceValue(letter, number, type, color, endGame) {
     if (type === 'k') {
 
         if (endGame) {
+            console.log("end")
             return endKings[color][swapNumber(number)][lettersToNumbers[letter]]
         }
 
@@ -214,9 +215,23 @@ const MIN_BOARD_POSITION = -905;
 const MAX_BOARD = 41.52
 const MIN_BOARD = -41.52
 
+// Mobility min/max
+const MAX_MOBILITY = 
+    // Pawns + Queen mobility (Assuming full promotion)
+    9 * (14 + 13) +
+    // Knight mobility
+    2 * 8 +
+    // Bishop mobility
+    2 * 13 +
+    // Rook mobility
+    2 * 14 +
+    // King mobility including castling
+    8 + 1
+const MIN_MOBILITY = 1
+
 // Penalties for pawn structures
-const DOUBLED_PAWN_PENALTY = 1
-const PASSED_PAWN_REWARD = 1
+const DOUBLED_PAWN_PENALTY = 1.5
+const PASSED_PAWN_REWARD = 2
 const CONNECTED_FLAT_REWARD = 1
 const CONNECTED_STEP_REWARD = 1.1
 
@@ -252,20 +267,20 @@ let opPawnInRow = false
 let multiplier = 1
 
 // Changes between early and end game
-let valueWeight = 0.9
-let positionWeight = 0.05
-let mobilityWeight = 0.03
-let pawnsWeight = 0.02
+let valueWeight = 0
+let positionWeight = 0
+let mobilityWeight = 0
+let pawnsWeight = 0
 
-let valueWeightEnd = 0.9
-let positionWeightEnd = 0.05
-let mobilityWeightEnd = 0.03
-let pawnsWeightEnd = 0.02
+let valueWeightEnd = 0.85
+let positionWeightEnd = 0.01
+let mobilityWeightEnd = 0.04
+let pawnsWeightEnd = 0.10
 
-let valueWeightEarly = 0.9
-let positionWeightEarly = 0.05
-let mobilityWeightEarly = 0.03
-let pawnsWeightEarly = 0.02
+let valueWeightEarly = 0.85
+let positionWeightEarly = 0.10
+let mobilityWeightEarly = 0.01
+let pawnsWeightEarly = 0.04
 
 function setGamePeriod(earlyGame) {
     isEarlyGame = earlyGame;
@@ -285,11 +300,13 @@ function setGamePeriod(earlyGame) {
     }
 }
 
-exports.complexEval = function earlyGameEval(game, action, preEval, WorB, actions) {
+exports.complexEval = function earlyGameEval(game, WorB, actionsLength) {
 
+    // Set team color
     if (WorB) { myTeamColor = 'w'; }
     else { myTeamColor = 'b'; }
 
+    // Reset temporary variables
     pawnStructure = 0
     positionScore = 0
     valueScore = 0
@@ -311,7 +328,7 @@ exports.complexEval = function earlyGameEval(game, action, preEval, WorB, action
                 else { multiplier = -1 }
 
                 // Score additions
-                positionScore += multiplier * getPieceValue(letters[i], j, testPiece.type, testPiece.color)
+                positionScore += multiplier * getPieceValue(letters[i], j, testPiece.type, testPiece.color, !isEarlyGame)
                 valueScore += multiplier * pieceValues[testPiece.type]
 
                 // Pawn structure work
@@ -398,11 +415,9 @@ exports.complexEval = function earlyGameEval(game, action, preEval, WorB, action
     }
 
     return (
-        0.05 * ((positionScore - MIN_BOARD_POSITION) / (MAX_BOARD_POSITION - MIN_BOARD_POSITION)) + 
-        0.95 * ((valueScore - MIN_BOARD) / (MAX_BOARD - MIN_BOARD))
+        positionWeight * ((positionScore - MIN_BOARD_POSITION) / (MAX_BOARD_POSITION - MIN_BOARD_POSITION)) +
+        valueWeight * ((valueScore - MIN_BOARD) / (MAX_BOARD - MIN_BOARD)) +
+        pawnsWeight * ((pawnStructure - MIN_PAWN_STRUCTURE) / (MAX_PAWN_STRUCTURE - MIN_PAWN_STRUCTURE)) + 
+        mobilityWeight * ((actionsLength - MIN_MOBILITY) / (MAX_MOBILITY - MIN_MOBILITY))
     )
-}
-
-function lateGameEval(game, action, preEval, WorB, actions) {
-    return 0
 }
