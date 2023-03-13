@@ -6,7 +6,7 @@ const nodes = require('./Nodes');
 function round(value, decimals) {
     return Number(Math.round(value+'e'+decimals)+'e-'+decimals);
 }
-  
+
 function invertEval(original) {
     if (original >= 0 && original <= 1) return 1 - original
     return null
