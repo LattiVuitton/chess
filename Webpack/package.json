@@ -1,5 +1,5 @@
 {
-  "homepage": "https://lattivuitton.github.io/chess/",
+  "homepage": ".",
   "browser": {
     "fs": false,
     "path": false,
