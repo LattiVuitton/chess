@@ -18,13 +18,380 @@ class Agent{
         this.WorB = WorB
         this.requiresVerbose = true
         this.requiresLastPlayerMove = false;
-        this.offlineTreeBuilding = false;
+        this.offlineTreeBuilding = true;
         this.hasTimeLimit = false;
     }
 
     // moves can either be only names, or full move object array
     selectMove(board, moves) {
         return null
+    }
+}
+
+
+// More efficient version of the MCTS agent
+class LightMCTS extends Agent{
+
+    // Only set ID and Color from super
+    constructor(id, WorB) {
+
+        // Default
+        super(id, WorB);
+
+        // Not really required, but useful in debugging
+        this.requiresVerbose = true;
+
+        // Set after move or recovered from previous moves
+        this.rootNode = null;
+
+        // Allows tree to be built whilst human is thinking
+        this.offlineTreeBuilding = true;
+
+        // Set by player throughout
+        // Changeable even mid-game
+        this.timeLimit = 1;
+
+        // Required for app class
+        this.hasTimeLimit = true;
+
+        // Required for ultra-low time limit scenarios
+        // Designed to ensure each move is trialled
+        this.MIN_ROUNDS = 100;
+
+        // Board constantly being updated
+        this.testGame;
+
+        // Moves the player will choose from
+        // And copy of previous board
+        this.playerMoves = null;
+        this.previousBoard = null;
+
+        // How many searches can each tree build perform
+        this.OFFLINE_BATCH_SIZE = 20;
+    }
+
+    // Set dynamically, including during round
+    setTimeLimit(timeLimit) {
+        this.timeLimit = timeLimit;
+    }
+
+    // All Q-values are for the node's owner
+    // Opponent board Q-values must be inverted
+    invertQvalue(value) {
+
+        // Assumes valid value given
+        return 1 - value;
+    }
+
+    // Called per frame / as fast as device is capable
+    offlineImproveTree() {
+
+        console.log("werc")
+        
+        // Batch size allows faster search
+        // By maximising against JS natural update limits
+        for (let i = 0; i < this.OFFLINE_BATCH_SIZE; i++){
+
+            // Main improvement function
+            this.improveTree()
+        }
+    }
+
+    // Always expands exactly one new node
+    // Depth of this node depends on tree structure
+    improveTree() {
+
+        // Not necessary
+        // Counts how many nodes are expanded
+        // Value is reset after every computer move
+        if (this.nodesGenerated === undefined) {
+
+            // Initialise
+            this.nodesGenerated = 0;
+        }
+        else {
+
+            // Increment
+            this.nodesGenerated++;
+        }
+
+        // Root node should be discovered by this point
+        // Path is created from the root of the tree
+        let searchNode = this.rootNode;
+        let path = [searchNode];
+
+        // Until new unvisited node is found
+        while (searchNode.visits > 0) {
+
+            // Temporary variable for next node in path
+            let next = searchNode.bandit();
+
+            // No moves available
+            // Search node is a terminal node
+            if (next === -1) {
+
+                // Visit node
+                searchNode.visit()
+
+                // Stop searching from here
+                break;
+            }
+
+            // Add next node as the search node
+            searchNode = next;
+
+            // Add next node to the path
+            path.push(searchNode);
+
+            // Using our actual board implementation
+            // Perform discovered move
+            this.testGame.move(searchNode.action);
+        }
+
+        // Q-value of final node's parent
+        let preQ = -1;
+
+        // If search node is first in the tree
+        if (searchNode.parent != undefined) {
+
+            // Retrieving parent value through node data structure
+            preQ = searchNode.parent.qValue;
+        }
+
+        // Nodes are usually not discovered yet
+        if (!searchNode.movesDiscoverd) {
+
+            // Discover moves at this stage
+            searchNode.discoverMoves(this.testGame.moves());
+            searchNode.movesDiscoverd = true;
+        }
+
+        // Only occurs if a terminal state has been reached
+        // Node has already been searched, and has no next state
+        else {
+
+            // No backprop can be performed here
+            // Since minimax-like algorithm is being used
+            return;
+        }
+
+        // If end node has no moves (guaranteed discovered)
+        if (searchNode.moves.length === 0) {
+
+            // Checkmate
+            if (this.testGame.isCheckmate()) {
+
+                // Always 0 since it is that node's turn
+                searchNode.setQValue(0);
+            }
+
+            // Draw
+            else {
+
+                // 0.5 for either player
+                searchNode.setQValue(0.5);
+            }
+        }
+
+        // Node has valid moves
+        else {
+
+            // if (searchNode.action != null) {
+            //     this.testGame.undo(searchNode.action)
+            //     console.log(this.testGame.moves({ , }))
+            //     this.testGame.move(searchNode.action)
+            // }
+
+            // Evaluate and set the node
+            // Use the preQ only if board value is being used (not NN)
+            searchNode.setQValue(eval.complexEval(this.testGame, searchNode.WorB, searchNode.moves.length, preQ));
+        }
+
+        // Bool for updating nodes when opponent has found a better move (for them)
+        let nextNodeChanged = false;
+
+        // console.log(path)
+
+        // Going backwards through the path
+        for (let i = path.length - 1; i >= 0; i--){
+
+            // Undo move from the test board
+            // Save on data storage through no copies
+            this.testGame.undo(path[i].action);
+
+            // Visit node
+            path[i].visit();
+
+            // Except for the final node
+            if (i < path.length - 1) {
+
+                // Update value if better move has been discovered
+                if (this.invertQvalue(path[i + 1].qValue) > path[i].qValue) {
+
+                    // Update node value
+                    path[i].setQValue(this.invertQvalue(path[i + 1].qValue));
+
+                    // Since this node has changed, next node may also change for worse
+                    nextNodeChanged = true;
+                }
+
+                // Only relevant if opponent response has decreased value of this node
+                else if (nextNodeChanged) {
+
+                    let maxQValue = -1;
+
+                    for (let key in path[i].children){
+                        if (this.invertQvalue(path[i].children[key].qValue) > maxQValue) {
+                            maxQValue = this.invertQvalue(path[i].children[key].qValue);
+                        }
+                    }
+
+                    path[i].setQValue(maxQValue);
+                }
+
+                // No update occurs
+                // No further updates can occur upstream
+                else {
+
+                    // For remaining path
+                    for (let j = i - 1; j >= 0; j--){
+
+                        // Undo move from the test board
+                        this.testGame.undo(path[j].action);
+
+                        // Visit node
+                        path[j].visit();
+                    }
+
+                    // No further checks needed in this path
+                    break;
+                }
+            }
+        }
+    }
+
+    // Main selection function for agent
+    selectMove(board, moves, moveNumber) {
+
+        var zara = eval.complexEval(board, this.WorB, moves.length, 0)
+
+        // For no wait time
+        if (moveNumber === 1) {
+            if (this.WorB) {
+                return 'e4'
+            }
+        }
+
+        // For endgame/earlygame setting
+        eval.updateGamePeriod(board);
+
+        // Time loop
+        const start = Date.now();
+
+        // Think for at least this number of rounds
+        // Required for avoiding no child expansion
+        var roundsCount = 0;
+
+        // Old root could not be recovered
+        let newRootRequired = true;
+
+        // If player moves and previous board are stored
+        if (this.playerMoves != null || this.previousBoard != null) {
+
+            // Create new testing chess board
+            let tempChess = new Chess(this.previousBoard.fen())
+
+            // Test each player move
+            for (let i = 0; i < this.playerMoves.length; i++){
+
+                // Make the player move
+                tempChess.move(this.playerMoves[i])
+
+                // Check if new board matches FEN of delivered board
+                if (tempChess.fen() === board.fen()) {
+
+                    // Recover root node
+                    this.rootNode = this.rootNode.children[this.playerMoves[i]]
+
+                    // If root node has actually been found
+                    if (this.rootNode != undefined) {
+
+                        // Set compulsory board storage
+                        // Only required for roots
+                        this.rootNode.board = board;
+
+                        // Don't create new root
+                        newRootRequired = false;
+                    }
+                }
+
+                // Undo the player move
+                tempChess.undo(this.playerMoves[i])
+            }
+        }
+
+        // If root could not be recovered
+        if (newRootRequired) {
+
+            // Create new root node
+            this.rootNode = nodes.getLightNode(null, this.WorB, null, board);
+        }
+
+        // Create test game based on the given board
+        this.testGame = new Chess(this.rootNode.board.fen());
+
+        // Reset
+        this.nodesGenerated = 0;
+
+        // Run time loop
+        while (Date.now() - start < (this.timeLimit * 1000) || roundsCount < this.MIN_ROUNDS) {
+
+            // Increment and improve tree
+            roundsCount++;
+            this.improveTree();
+        }
+
+        // Best moves for final search
+        let bestQValue = -1;
+        let bestAction = null;
+        let castleBonus = 0;
+
+        // Each child will be discovered by this point
+        for (var moveKey in this.rootNode.children) {
+
+            // Encourage castling in early game
+            if ((moveKey == 'O-O' || moveKey == 'O-O-O') && eval.getEarly) {
+                castleBonus = 0.05;
+            }
+
+            else {
+                castleBonus = 0;
+            }
+
+
+            // If new move is better
+            if (this.invertQvalue(this.rootNode.children[moveKey].qValue) + castleBonus> bestQValue) {
+
+                // Set new action and value
+                bestAction = moveKey;
+                bestQValue = this.invertQvalue(this.rootNode.children[moveKey].qValue);
+            }
+        }
+
+        // Set player moves based on the action we have selected
+        this.playerMoves = this.rootNode.children[bestAction].moves;
+
+        // Create new chess object (copy) and make first move on previous board
+        this.previousBoard = new Chess(this.rootNode.board.fen());
+        this.previousBoard.move(bestAction)
+        this.testGame = new Chess(this.previousBoard.fen())
+
+        // Set new root node (will be player to move)
+        this.rootNode = this.rootNode.children[bestAction];
+        this.rootNode.board = new Chess(this.previousBoard.fen())
+
+        // Return action to main app
+        return bestAction;
     }
 }
 
@@ -82,6 +449,7 @@ class AlwaysTake extends Agent{
     }
 }
 
+// Won't work anymore due to NN being removed
 class GreedyAgent extends Agent{
     constructor(id, WorB) {
         super(id, WorB)
@@ -108,7 +476,6 @@ class GreedyAgent extends Agent{
             
             //const boardValue = eval.pieceValue(clonedBoard, color, null, 0)
             const boardValue = eval.NN(clonedBoard, color, null, 0)
-            console.log("wercwercw")
 
             if (boardValue > bestMoveValue) {
                 bestMove = move
@@ -120,6 +487,7 @@ class GreedyAgent extends Agent{
     }
 }
 
+// Old MCTS agent
 class MCTSAgent extends Agent{
     constructor(id, WorB) {
         super(id, WorB)
@@ -361,363 +729,6 @@ class MCTSAgent extends Agent{
         // console.log(round(bestQ,4))
 
         return bestMove
-    }
-}
-
-// More efficient version of the MCTS agent
-class LightMCTS extends Agent{
-
-    // Only set ID and Color from super
-    constructor(id, WorB) {
-
-        // Default
-        super(id, WorB);
-
-        // Not really required, but useful in debugging
-        this.requiresVerbose = true;
-
-        // Set after move or recovered from previous moves
-        this.rootNode = null;
-
-        // Allows tree to be built whilst human is thinking
-        this.offlineTreeBuilding = true;
-
-        // Set by player throughout
-        // Changeable even mid-game
-        this.timeLimit = 1;
-
-        // Required for app class
-        this.hasTimeLimit = true;
-
-        // Required for ultra-low time limit scenarios
-        // Designed to ensure each move is trialled
-        this.MIN_ROUNDS = 100;
-
-        // Board constantly being updated
-        this.testGame;
-
-        // Moves the player will choose from
-        // And copy of previous board
-        this.playerMoves = null;
-        this.previousBoard = null;
-
-        // How many searches can each tree build perform
-        this.OFFLINE_BATCH_SIZE = 20;
-    }
-
-    // Set dynamically, including during round
-    setTimeLimit(timeLimit) {
-        this.timeLimit = timeLimit;
-    }
-
-    // All Q-values are for the node's owner
-    // Opponent board Q-values must be inverted
-    invertQvalue(value) {
-
-        // Assumes valid value given
-        return 1 - value;
-    }
-
-    // Called per frame / as fast as device is capable
-    offlineImproveTree() {
-
-        // Batch size allows faster search
-        // By maximising against JS natural update limits
-        for (let i = 0; i < this.OFFLINE_BATCH_SIZE; i++){
-
-            // Main improvement function
-            this.improveTree()
-        }
-    }
-
-    // Always expands exactly one new node
-    // Depth of this node depends on tree structure
-    improveTree() {
-
-        // Not necessary
-        // Counts how many nodes are expanded
-        // Value is reset after every computer move
-        if (this.nodesGenerated === undefined) {
-
-            // Initialise
-            this.nodesGenerated = 0;
-        }
-        else {
-
-            // Increment
-            this.nodesGenerated++;
-        }
-
-        // Root node should be discovered by this point
-        // Path is created from the root of the tree
-        let searchNode = this.rootNode;
-        let path = [searchNode];
-
-        // Until new unvisited node is found
-        while (searchNode.visits > 0) {
-
-            // Temporary variable for next node in path
-            let next = searchNode.bandit();
-
-            // No moves available
-            // Search node is a terminal node
-            if (next === -1) {
-
-                // Visit node
-                searchNode.visit()
-
-                // Stop searching from here
-                break;
-            }
-
-            // Add next node as the search node
-            searchNode = next;
-
-            // Add next node to the path
-            path.push(searchNode);
-
-            // Using our actual board implementation
-            // Perform discovered move
-            this.testGame.move(searchNode.action);
-        }
-
-        // Q-value of final node's parent
-        let preQ = -1;
-
-        // If search node is first in the tree
-        if (searchNode.parent != undefined) {
-
-            // Retrieving parent value through node data structure
-            preQ = searchNode.parent.qValue;
-        }
-
-        // Nodes are usually not discovered yet
-        if (!searchNode.movesDiscoverd) {
-
-            // Discover moves at this stage
-            searchNode.discoverMoves(this.testGame.moves());
-            searchNode.movesDiscoverd = true;
-        }
-
-        // Only occurs if a terminal state has been reached
-        // Node has already been searched, and has no next state
-        else {
-
-            // No backprop can be performed here
-            // Since minimax-like algorithm is being used
-            return;
-        }
-
-        // If end node has no moves (guaranteed discovered)
-        if (searchNode.moves.length === 0) {
-
-            // Checkmate
-            if (this.testGame.isCheckmate()) {
-
-                // Always 0 since it is that node's turn
-                searchNode.setQValue(0);
-            }
-
-            // Draw
-            else {
-
-                // 0.5 for either player
-                searchNode.setQValue(0.5);
-            }
-        }
-
-        // Node has valid moves
-        else {
-
-            // if (searchNode.action != null) {
-            //     this.testGame.undo(searchNode.action)
-            //     console.log(this.testGame.moves({ , }))
-            //     this.testGame.move(searchNode.action)
-            // }
-
-            // Evaluate and set the node
-            // Use the preQ only if board value is being used (not NN)
-            searchNode.setQValue(eval.complexEval(this.testGame, searchNode.action, preQ, searchNode.WorB));
-        }
-
-        // Bool for updating nodes when opponent has found a better move (for them)
-        let nextNodeChanged = false;
-
-        // Going backwards through the path
-        for (let i = path.length - 1; i >= 0; i--){
-
-            // Undo move from the test board
-            // Save on data storage through no copies
-            this.testGame.undo(path[i].action);
-
-            // Visit node
-            path[i].visit();
-
-            // Except for the final node
-            if (i < path.length - 1) {
-
-                // Update value if better move has been discovered
-                if (this.invertQvalue(path[i + 1].qValue) > path[i].qValue && false) {
-
-                    // Update node value
-                    path[i].setQValue(this.invertQvalue(path[i + 1].qValue));
-
-                    // Since this node has changed, next node may also change for worse
-                    nextNodeChanged = true;
-                }
-
-                // Only relevant if opponent response has decreased value of this node
-                else if (nextNodeChanged || true) {
-                    // console.log(path[i].qValue)
-
-                    let maxQValue = -1;
-
-                    for (let key in path[i].children){
-                        if (this.invertQvalue(path[i].children[key].qValue) > maxQValue) {
-                            maxQValue = this.invertQvalue(path[i].children[key].qValue);
-                        }
-                    }
-                    
-                    path[i].setQValue(maxQValue);
-
-                    // if (maxQValue < path[i].qValue && maxQValue >= 0) {
-                    //     console.log(maxQValue)
-                    //     path[i].setQValue(maxQValue);
-                    // }
-                }
-
-                // No update occurs
-                // No further updates can occur upstream
-                else {
-
-                    // For remaining path
-                    for (let j = i - 1; j >= 0; j--){
-
-                        // Undo move from the test board
-                        this.testGame.undo(path[j].action);
-
-                        // Visit node
-                        path[j].visit();
-                    }
-
-                    // No further checks needed in this path
-                    break;
-                }
-            }
-        }
-    }
-
-    // Main selection function for agent
-    selectMove(board, moves) {
-
-        // Time loop
-        const start = Date.now();
-
-        // Think for at least this number of rounds
-        // Required for avoiding no child expansion
-        var roundsCount = 0;
-
-        // Old root could not be recovered
-        let newRootRequired = true;
-
-        // If player moves and previous board are stored
-        if (this.playerMoves != null || this.previousBoard != null) {
-
-            // Create new testing chess board
-            let tempChess = new Chess(this.previousBoard.fen())
-
-            // Test each player move
-            for (let i = 0; i < this.playerMoves.length; i++){
-
-                // Make the player move
-                tempChess.move(this.playerMoves[i])
-
-                // Check if new board matches FEN of delivered board
-                if (tempChess.fen() === board.fen()) {
-
-                    // Recover root node
-                    this.rootNode = this.rootNode.children[this.playerMoves[i]]
-
-                    // If root node has actually been found
-                    if (this.rootNode != undefined) {
-
-                        // Set compulsory board storage
-                        // Only required for roots
-                        this.rootNode.board = board;
-
-                        // Don't create new root
-                        newRootRequired = false;
-                    }
-                }
-
-                // Undo the player move
-                tempChess.undo(this.playerMoves[i])
-            }
-        }
-
-        // If root could not be recovered
-        if (newRootRequired) {
-
-            // Create new root node
-            this.rootNode = nodes.getLightNode(null, this.WorB, null, board);
-        }
-
-        // Create test game based on the given board
-        this.testGame = new Chess(this.rootNode.board.fen());
-
-        // Reset
-        this.nodesGenerated = 0;
-
-        // Run time loop
-        while (Date.now() - start < (this.timeLimit * 1000) || roundsCount < this.MIN_ROUNDS) {
-
-            // Increment and improve tree
-            roundsCount++;
-            this.improveTree();
-        }
-
-        // Best moves for final search
-        let bestQValue = -1;
-        let bestAction = null;
-
-        var summ = 1
-
-        console.log("\n--------------------------------")
-
-        // Each child will be discovered by this point
-        for (var moveKey in this.rootNode.children) {
-            
-            console.log("\nMove: " + moveKey);
-            console.log("Value: " + this.invertQvalue(this.rootNode.children[moveKey].qValue));
-            console.log("Visits: " + this.rootNode.children[moveKey].visits);
-
-            summ += this.rootNode.children[moveKey].visits
-
-            // If new move is better
-            if (this.invertQvalue(this.rootNode.children[moveKey].qValue) > bestQValue) {
-
-                // Set new action and value
-                bestAction = moveKey;
-                bestQValue = this.invertQvalue(this.rootNode.children[moveKey].qValue);
-            }
-        }
-        console.log("Count: " + this.nodesGenerated);
-        console.log("Sum:   " + (summ))
-
-        // Set player moves based on the action we have selected
-        this.playerMoves = this.rootNode.children[bestAction].moves;
-
-        // Create new chess object (copy) and make first move on previous board
-        this.previousBoard = new Chess(this.rootNode.board.fen());
-        this.previousBoard.move(bestAction)
-        this.testGame = new Chess(this.previousBoard.fen())
-
-        // Set new root node (will be player to move)
-        this.rootNode = this.rootNode.children[bestAction];
-        this.rootNode.board = new Chess(this.previousBoard.fen())
-
-        // Return action to main app
-        return bestAction;
     }
 }
 

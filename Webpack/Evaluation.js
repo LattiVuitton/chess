@@ -214,25 +214,11 @@ const MIN_BOARD_POSITION = -905;
 const MAX_BOARD = 41.52
 const MIN_BOARD = -41.52
 
-// Mobility min/max
-const MAX_MOBILITY = 
-    // Pawns + Queen mobility (Assuming full promotion)
-    9 * (14 + 13) +
-    // Knight mobility
-    2 * 8 +
-    // Bishop mobility
-    2 * 13 +
-    // Rook mobility
-    2 * 14 +
-    // King mobility including castling
-    8 + 1
-const MIN_MOBILITY = 1
-
 // Penalties for pawn structures
-const DOUBLED_PAWN_PENALTY = 1.5
+const DOUBLED_PAWN_PENALTY = 2.5
 const PASSED_PAWN_REWARD = 2
 const CONNECTED_FLAT_REWARD = 1
-const CONNECTED_STEP_REWARD = 1.1
+const CONNECTED_STEP_REWARD = 1.5
 
 // Material threshold for game being considered end game (exclude kings)
 const END_GAME_THRESHOLD = 35;
@@ -256,7 +242,6 @@ const pieceValues = {
 
 // Changes balance of algorithm
 var isEarlyGame = true;
-var isEndGame = false;
 
 let valueScore = 0
 let positionScore = 0
@@ -272,18 +257,19 @@ let multiplier = 1
 // Changes between early and end game
 let valueWeight = 0
 let positionWeight = 0
-let mobilityWeight = 0
 let pawnsWeight = 0
 
 let valueWeightEnd = 0.85
-let positionWeightEnd = 0.01
-let mobilityWeightEnd = 0.04
+let positionWeightEnd = 0.05
 let pawnsWeightEnd = 0.10
 
-let valueWeightEarly = 0.85
-let positionWeightEarly = 0.10
-let mobilityWeightEarly = 0.01
-let pawnsWeightEarly = 0.04
+let valueWeightEarly = 0.90
+let positionWeightEarly = 0.07
+let pawnsWeightEarly = 0.03
+
+exports.getEarly = function getEarly() {
+    return isEarlyGame;
+}
 
 // Set from agents
 exports.updateGamePeriod = function updateGamePeriod(board) {
@@ -319,19 +305,17 @@ function setGamePeriod(earlyGame) {
     if (earlyGame) {
         valueWeight = valueWeightEarly;
         positionWeight = positionWeightEarly;
-        mobilityWeight = mobilityWeightEarly;
         pawnsWeight = pawnsWeightEarly;
     }
 
     else {
         valueWeight = valueWeightEnd;
         positionWeight = positionWeightEnd;
-        mobilityWeight = mobilityWeightEnd;
         pawnsWeight = pawnsWeightEnd;
     }
 }
 
-exports.complexEval = function earlyGameEval(game, WorB, actionsLength, preQ) {
+exports.complexEval = function earlyGameEval(game, WorB) {
 
     // Set team color
     if (WorB) { myTeamColor = 'w'; }
@@ -352,7 +336,7 @@ exports.complexEval = function earlyGameEval(game, WorB, actionsLength, preQ) {
         for (let j = 1; j < letters.length + 1; j++) {
             testPiece = game.get(letters[i] + j)
             
-            if (testPiece != false) {
+            if (testPiece) {
 
                 // Set multiplier depending on team
                 if (testPiece.color === myTeamColor) { multiplier = 1 }
@@ -449,7 +433,6 @@ exports.complexEval = function earlyGameEval(game, WorB, actionsLength, preQ) {
     return (
         positionWeight * ((positionScore - MIN_BOARD_POSITION) / (MAX_BOARD_POSITION - MIN_BOARD_POSITION)) +
         valueWeight * ((valueScore - MIN_BOARD) / (MAX_BOARD - MIN_BOARD)) +
-        pawnsWeight * ((pawnStructure - MIN_PAWN_STRUCTURE) / (MAX_PAWN_STRUCTURE - MIN_PAWN_STRUCTURE)) + 
-        mobilityWeight * ((actionsLength - MIN_MOBILITY) / (MAX_MOBILITY - MIN_MOBILITY))
+        pawnsWeight * ((pawnStructure - MIN_PAWN_STRUCTURE) / (MAX_PAWN_STRUCTURE - MIN_PAWN_STRUCTURE))
     )
 }
