@@ -156,9 +156,6 @@ var colorButton = document.getElementById("colorButton");
 var resetButton = document.getElementById("resetButton")
 var allowBuilding = document.getElementById("allowBuilding")
 
-// 1 count here is a move for both players
-var moveCount = 1;
-
 simulateButton.addEventListener("click", function () {
     simulateGame()
 }, false);
@@ -182,7 +179,6 @@ function resetGame(){
     board.position(game.fen())
     canPickUp = true;
     gameActive = false;
-    moveCount = 1;
 }
 
 // Agent listeners --------------------------- start
@@ -373,9 +369,7 @@ function computerMove() {
     }
 
     // Get agent move
-    nextMove = opponent.selectMove(game, moves, moveCount)
-
-    moveCount++;
+    nextMove = opponent.selectMove(game, moves)
 
     if (printMoves) {
         console.log(nextMove)
