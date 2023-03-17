@@ -10,15 +10,27 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Chess App</title>
-    <h1 style="text-align: center;">fChess</h1>
 </head>
 <body>
-    <div id="myBoard" style="width: 400px; margin: auto;">werc</div>
-    <div class="slidecontainer">
-        <input type="range" min="0" max="100" value="10" class="slider" id="timeSlider">
-      </div>
-    <button id="colorButton">Change Color</button>
-    <button id="resetButton">Reset</button>
+    <div id="HeadingDiv">
+        <h1 id="HeadingInDiv">Play Against Computer</h1>
+    </div>
+
+    <div id="myBoard" style="width: 400px; margin: auto">werc</div>
+
+    <div style="background-color: aqua;"> 
+        <div style="background-color: beige; text-align: center;" class="slidecontainer">
+            <div>
+                <p1>Thinking Time: 1s</p1>
+            </div>
+            <div>
+                <input type="range" min="0" max="100" value="10" class="slider" id="timeSlider">
+            </div>
+          </div>
+        <button id="colorButton">Change Color</button>
+        <button id="resetButton">Reset</button>
+    </div>
+
 
     <script src="Webpack/_bundle.js"></script>
 
