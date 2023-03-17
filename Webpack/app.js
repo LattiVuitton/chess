@@ -1,13 +1,14 @@
 // const printHello = require('./print-hello');
 var agents = require('./Agents');
 
-// var model = require('./TrainingModel');
-
 // No timeout on certain moves
 const NO_TIMEOUT = 0;
 // Used to cover piece moves
 const COVER_TIMEOUT = 50;
 const TINY_TIMEOUT = 15;
+const LONG_TIMEOUT = 400;
+
+const BOARD_WIDTH = 8;
 
 var printMoves = false;
 
@@ -15,7 +16,6 @@ var offlineEnabled = false;
 
 var opponent = agents.getAgent("random", 0, true);
 
-const BOARD_WIDTH = 8;
 
 var board = null
 
@@ -27,6 +27,44 @@ const chess = require('chess.js')
 var game = new chess.Chess()
 
 var agentID = 0
+
+var config = {
+    draggable: true,
+    position: 'start',
+    onDragStart: onDragStart,
+    onDrop: onDrop,
+    }
+    
+board = Chessboard('myBoard', config)
+
+var WorB = true;
+setOpponent("LightMCTS")
+
+const MIN_TIME = 0.0000001;
+const MAX_TIME = 10;
+
+var slider = document.getElementById("timeSlider")
+slider.oninput = function () {
+    changeTime( (slider.value/slider.max) * (MAX_TIME - MIN_TIME) + MIN_TIME)
+}
+
+let moveCount = 1;
+
+var colorButton = document.getElementById("colorButton");
+var resetButton = document.getElementById("resetButton")
+
+if (navigator.userAgent.match(/Android/i)
+|| navigator.userAgent.match(/webOS/i)
+|| navigator.userAgent.match(/iPhone/i)
+|| navigator.userAgent.match(/iPad/i)
+|| navigator.userAgent.match(/iPod/i)
+|| navigator.userAgent.match(/BlackBerry/i)
+    || navigator.userAgent.match(/Windows Phone/i)) {
+    console.log("Mobile")
+}
+else {
+    console.log("Desktop")
+}
 
 function getID() {
     agentID++
@@ -51,20 +89,31 @@ function onDragStart(source, piece, position, orientation) {
     if (!WorB && (piece.search(/^w/) !== -1)) return false
 
 }
-  
-function makeRandomMove () {
-    var possibleMoves = game.moves()
 
-    // game over
-    if (possibleMoves.length === 0) return
+function proceedToComputer() {
+    
+    treeBuildingAllowed = false;
+    
+    gameActive = true
 
-    var randomIdx = Math.floor(Math.random() * possibleMoves.length)
-    game.move(possibleMoves[randomIdx])
+    // Check for end of game
+    if (game.isGameOver()) {
+        console.log("Game over")
+    }
+
+    else {
+        window.setTimeout(setComp, TINY_TIMEOUT)
+    }
+
+    boardReady = false;
+    canPickUp = false;
+
+    window.setTimeout(updateBoard, TINY_TIMEOUT)
+
 }
 
 // Storing the most recent player move
 // Only needed for MCTS agent
-var lastPlayerMove = null
 function onDrop(source, target) {
 
     var promoting = false;
@@ -97,41 +146,25 @@ function onDrop(source, target) {
         return 'snapback'
     }
 
-    treeBuildingAllowed = false;
-    
-    gameActive = true
+    canPickUp = false;
+    if (newMove.san == "O-O" || newMove.san == "O-O-O") {
+        // board.position(game.fen())
+        window.setTimeout(function () {
+            board.position(game.fen())
+            window.setTimeout(proceedToComputer,200);
 
+        }, 200);
 
-    if (printMoves) {
-        console.log(newMove)
-    }
-
-    // if (newMove.san === 'O-O') {
-    //     console.log("we0crwoieurcowiecuowieurcwioerucniowerucioewrucn")
-    //     board.position(game.fen())
-    // }
-
-    // else if (newMove.san === 'O-O-O') {
-    //     console.log("----------------------")
-    // }
-
-    // Check for end of game
-    if (game.isGameOver()) {
-        console.log("Game over")
     }
 
     else {
-        window.setTimeout(setComp, TINY_TIMEOUT)
+        proceedToComputer()
+
     }
-
-    lastPlayerMove = newMove
-
-    boardReady = false;
-    canPickUp = false;
-
-    window.setTimeout(updateBoard, TINY_TIMEOUT)
+    
 
 }
+
 
 function setComp() {
     // Move using active agent
@@ -139,26 +172,6 @@ function setComp() {
 }
 
 
-  
-var config = {
-draggable: true,
-position: 'start',
-onDragStart: onDragStart,
-onDrop: onDrop,
-}
-
-board = Chessboard('myBoard', config)
-
-var WorB = true;
-
-var simulateButton = document.getElementById("CompVComp");
-var colorButton = document.getElementById("colorButton");
-var resetButton = document.getElementById("resetButton")
-var allowBuilding = document.getElementById("allowBuilding")
-
-simulateButton.addEventListener("click", function () {
-    simulateGame()
-}, false);
 
 colorButton.addEventListener("click", function () {
     swapColor()
@@ -168,40 +181,20 @@ resetButton.addEventListener("click", function () {
     resetGame()
 }, false);
 
-allowBuilding.addEventListener("click", function () {
-    offlineEnabled = !offlineEnabled
-    console.log("Tree building enabled: " + offlineEnabled)
-}, false);
-
 function resetGame(){
     console.log("resetting")
     game = new chess.Chess()
     board.position(game.fen())
     canPickUp = true;
     gameActive = false;
+    moveCount = 1
+    if (opponent.WorB) {
+        window.setTimeout(proceedToComputer, LONG_TIMEOUT);
+    }
 }
 
-// Agent listeners --------------------------- start
-var randomAgent = document.getElementById("randomAgent");
-var heuristicAgent = document.getElementById("heuristicAgent");
-var MCTSAgent = document.getElementById("MCTSAgent");
-var LightAgent = document.getElementById("LightAgent");
-var GreedyNNAgent = document.getElementById("NNGreedy");
-
-randomAgent.addEventListener("click", function () {changeAgent("random")}, false);
-heuristicAgent.addEventListener("click", function () {changeAgent("heuristic")}, false);
-MCTSAgent.addEventListener("click", function () {changeAgent("MCTS")}, false);
-LightAgent.addEventListener("click", function () { changeAgent("LightMCTSAgent") }, false);
-GreedyNNAgent.addEventListener("click", function () { changeAgent("NNGreedy")}, false)
-
 // Auto set MCTS
-changeAgent("LightMCTSAgent")
-
-var changeTime05 = document.getElementById("changeTo05");
-var changeTime1 = document.getElementById("changeTo1");
-var changeTime2 = document.getElementById("changeTo2");
-var changeTime3 = document.getElementById("changeTo3");
-var changeTime5 = document.getElementById("changeTo5");
+// changeAgent("LightMCTSAgent")
 
 function changeTime(timeLimit) {
     console.log("Setting time limit to " + timeLimit + " seconds.")
@@ -212,12 +205,7 @@ function changeTime(timeLimit) {
     }
 }
 
-changeTime05.addEventListener("click", function () { changeTime(0.5)}, false)
-changeTime1.addEventListener("click", function () { changeTime(1)}, false)
-changeTime2.addEventListener("click", function () { changeTime(2)}, false)
-changeTime3.addEventListener("click", function () { changeTime(3)}, false)
-changeTime5.addEventListener("click", function () { changeTime(5)}, false)
-
+// Not needed, since only one agent appears on web page
 function changeAgent(agentName) {
 
     if (!gameActive) {
@@ -258,8 +246,22 @@ function changeAgent(agentName) {
 
 function swapColor() {
     if (gameActive) {
-        return
+        if (moveCount == 2 && opponent.WorB) {
+            game = new chess.Chess()
+            board.position(game.fen())
+            window.setTimeout(swapColorHelper, 500)
+        }
+        else {
+            return 
+        }
     }
+
+    else {
+        swapColorHelper()
+    }
+}
+
+function swapColorHelper() {
 
     opponent.WorB = WorB;
     WorB = !WorB;
@@ -291,9 +293,8 @@ function swapColor() {
           }
         
         board = Chessboard('myBoard', config)
-        canPickUp = false;
+        canPickUp = true;
     }
-    document.getElementById("playerColor").innerHTML="Playing as: " + color
 }
 
 function simulateGame() {
@@ -341,7 +342,6 @@ function simulateGame() {
     console.log("Agent " + agent2.id + "       :  " + agent2Wins + " (" + Math.round((100 * agent2Wins / gamesPlayed + Number.EPSILON) * round) / round + " %)")
     console.log("Draws         :  " + draws + " (" + Math.round((100 * draws / gamesPlayed + Number.EPSILON) * round) / round + " %)")
     console.log("")
-
 }
 
 function updateBoard() {
@@ -369,7 +369,9 @@ function computerMove() {
     }
 
     // Get agent move
-    nextMove = opponent.selectMove(game, moves)
+    nextMove = opponent.selectMove(game, moves, moveNumber = moveCount)
+
+    moveCount++
 
     if (printMoves) {
         console.log(nextMove)
@@ -386,11 +388,11 @@ function computerMove() {
     // Move on front end board
     window.setTimeout(updateBoard, NO_TIMEOUT)
 
-    // Allow player pick up
-    canPickUp = true;
-
     // Allow offline tree building
     window.setTimeout(activateTreeBuilding, COVER_TIMEOUT);
+
+    // Allow player pick up
+    window.setTimeout(function(){canPickUp = true;}, 100);
 }
 
 var timeCount = 0
