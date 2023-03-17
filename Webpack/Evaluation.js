@@ -221,7 +221,7 @@ const CONNECTED_FLAT_REWARD = 1
 const CONNECTED_STEP_REWARD = 1.5
 
 // Material threshold for game being considered end game (exclude kings)
-const END_GAME_THRESHOLD = 35;
+const END_GAME_THRESHOLD = 40;
 
 // For normalising pawn structure eval
 const MAX_PAWN_STRUCTURE =
@@ -260,12 +260,12 @@ let positionWeight = 0
 let pawnsWeight = 0
 
 let valueWeightEnd = 0.85
-let positionWeightEnd = 0.05
-let pawnsWeightEnd = 0.10
+let positionWeightEnd = 0.15
+let pawnsWeightEnd = 0
 
 let valueWeightEarly = 0.90
-let positionWeightEarly = 0.07
-let pawnsWeightEarly = 0.03
+let positionWeightEarly = 0.1
+let pawnsWeightEarly = 0
 
 exports.getEarly = function getEarly() {
     return isEarlyGame;

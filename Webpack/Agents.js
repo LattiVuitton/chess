@@ -49,7 +49,7 @@ class LightMCTS extends Agent{
 
         // Set by player throughout
         // Changeable even mid-game
-        this.timeLimit = 1;
+        this.timeLimit = 0.8;
 
         // Required for app class
         this.hasTimeLimit = true;
@@ -273,8 +273,6 @@ class LightMCTS extends Agent{
     // Main selection function for agent
     selectMove(board, moves, moveNumber) {
 
-        var zara = eval.complexEval(board, this.WorB, moves.length, 0)
-
         // For no wait time
         if (moveNumber === 1) {
             if (this.WorB) {
@@ -355,9 +353,13 @@ class LightMCTS extends Agent{
         let bestQValue = -1;
         let bestAction = null;
         let castleBonus = 0;
+        let nodesExplored = 0;
 
         // Each child will be discovered by this point
         for (var moveKey in this.rootNode.children) {
+
+            // Counting nodes
+            nodesExplored += this.rootNode.children[moveKey].visits;
 
             // Encourage castling in early game
             if ((moveKey == 'O-O' || moveKey == 'O-O-O') && eval.getEarly) {
@@ -377,6 +379,8 @@ class LightMCTS extends Agent{
                 bestQValue = this.invertQvalue(this.rootNode.children[moveKey].qValue);
             }
         }
+
+        console.log("Evaluated " + nodesExplored + " board positions.")
 
         // Set player moves based on the action we have selected
         this.playerMoves = this.rootNode.children[bestAction].moves;
