@@ -3,24 +3,20 @@ var agents = require('./Agents');
 
 // No timeout on certain moves
 const NO_TIMEOUT = 0;
+
 // Used to cover piece moves
 const COVER_TIMEOUT = 50;
 const TINY_TIMEOUT = 15;
 const LONG_TIMEOUT = 400;
 
 const BOARD_WIDTH = 8;
-
 const STARTING_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
 var printMoves = false;
-
-var offlineEnabled = false;
-
+var offlineEnabled = true;
 var opponent = agents.getAgent("random", 0, true);
 
-
 var board = null
-
 var waitingForComputer = false;
 var boardReady = false;
 var canPickUp = true;
@@ -42,22 +38,38 @@ board = Chessboard('myBoard', config)
 var WorB = true;
 setOpponent("LightMCTS")
 
+// Max/min thinking time
 const MIN_TIME = 0.1;
 const MAX_TIME = 10;
 
+// Slider object
 var slider = document.getElementById("timeSlider")
 slider.oninput = function () {
     changeTime( (slider.value/slider.max) * (MAX_TIME - MIN_TIME) + MIN_TIME)
 }
 
+// Keeping track of move number
 let moveCount = 1;
 
+// HTML buttons
 var colorButton = document.getElementById("colorButton");
 var resetButton = document.getElementById("resetButton")
 
 // Size management
 const SCREEN_FRACTION = 1//0.9;
 
+document.getElementById("gameOver").style.opacity = 0;
+
+function displayGameOver(On) {
+    if (On) {
+        document.getElementById("gameOver").style.opacity = 100;
+    }
+    else {
+        document.getElementById("gameOver").style.opacity = 0;
+    }
+}
+
+// Resize HTML elements
 function resizeEverything(){
 
     let subtractHeight = 0;
@@ -76,21 +88,21 @@ function resizeEverything(){
         resizeWidth - document.getElementById("resetButton").offsetWidth
     ) + "px";
 
-    // board = Chessboard('myBoard', config)
+    document.getElementById("gameOver").style.marginLeft =
+        (window.innerWidth) / 2 - document.getElementById("gameOver").offsetWidth / 2 + "px"
+
+    document.getElementById("gameOver").style.marginTop = -1 * (resizeWidth/2 + document.getElementById("gameOver").offsetHeight / 2)+ "px"
+    
     board.resize()
 }
 
 resizeEverything()
 
 window.addEventListener('resize', () => { 
-
     resizeEverything()
-
 })
 
-
-
-
+// Check for mobile application being used
 if (navigator.userAgent.match(/Android/i)
 || navigator.userAgent.match(/webOS/i)
 || navigator.userAgent.match(/iPhone/i)
@@ -98,12 +110,11 @@ if (navigator.userAgent.match(/Android/i)
 || navigator.userAgent.match(/iPod/i)
 || navigator.userAgent.match(/BlackBerry/i)
     || navigator.userAgent.match(/Windows Phone/i)) {
-    console.log("Mobile")
 }
 else {
-    console.log("Desktop")
 }
 
+// Not really necessary given single agent
 function getID() {
     agentID++
     return agentID
@@ -128,15 +139,15 @@ function onDragStart(source, piece, position, orientation) {
 
 }
 
+// Computer move
 function proceedToComputer() {
     
     treeBuildingAllowed = false;
-    
     gameActive = true
 
     // Check for end of game
     if (game.isGameOver()) {
-        console.log("Game over")
+        displayGameOver(true)
     }
 
     else {
@@ -147,7 +158,6 @@ function proceedToComputer() {
     canPickUp = false;
 
     window.setTimeout(updateBoard, TINY_TIMEOUT)
-
 }
 
 // Storing the most recent player move
@@ -159,9 +169,12 @@ function onDrop(source, target) {
 
     // Checking if move is a promotion
     firstLetter = target.split("")[1];
+
+    // Check for pawn promotion
     if (firstLetter === BOARD_WIDTH.toString() || firstLetter === "1") {
         piece = game.get(source);
         if (piece.type === 'p') {
+
             promoting = true;
             newMove = game.move({
                 from: source,
@@ -171,6 +184,7 @@ function onDrop(source, target) {
         }
     }
 
+    // In case of promoting 'Queen' is assumed
     if (!promoting) {
         newMove = game.move({
             from: source,
@@ -197,19 +211,16 @@ function onDrop(source, target) {
 
     else {
         proceedToComputer()
-
     }
-    
-
 }
+
 
 function setComp() {
     // Move using active agent
     waitingForComputer = true
 }
 
-
-
+// HTML button elements
 colorButton.addEventListener("click", function () {
     swapColor()
 }, false);
@@ -218,6 +229,7 @@ resetButton.addEventListener("click", function () {
     resetGame()
 }, false);
 
+// Reset board and game object
 function resetGame(){
     game = new chess.Chess()
     board.position(game.fen())
@@ -227,8 +239,10 @@ function resetGame(){
     if (opponent.WorB) {
         window.setTimeout(proceedToComputer, LONG_TIMEOUT);
     }
+    displayGameOver(false)
 }
 
+// Based on the slider
 function changeTime(timeLimit) {
     if (opponent != null) {
         if (opponent.hasTimeLimit) {
@@ -238,6 +252,7 @@ function changeTime(timeLimit) {
     }
 }
 
+// Change board color
 function swapColor() {
     if (gameActive) {
         if (moveCount == 2 && opponent.WorB || game.fen() == STARTING_FEN) {
@@ -256,6 +271,7 @@ function swapColor() {
     }
 }
 
+// Assuming game is active/valid
 function swapColorHelper() {
 
     opponent.WorB = WorB;
@@ -269,7 +285,6 @@ function swapColorHelper() {
             orientation: 'black',
             onDragStart: onDragStart,
             onDrop: onDrop,
-            // onSnapEnd: onSnapEnd
           }
         
         board = Chessboard('myBoard', config)
@@ -278,13 +293,13 @@ function swapColorHelper() {
         window.setTimeout(computerMove(), 250)
         canPickUp = true;
     }
+
     else {
         var config = {
             draggable: true,
             position: 'start',
             onDragStart: onDragStart,
             onDrop: onDrop,
-            // onSnapEnd: onSnapEnd
         }
         
         gameActive = true
@@ -293,6 +308,99 @@ function swapColorHelper() {
     }
 }
 
+// Allow tree building whilst computer waiting for player
+function activateTreeBuilding() {
+    treeBuildingAllowed = true;
+}
+
+// Make physical board move
+function updateBoard() {
+    board.position(game.fen())
+    boardReady = true;
+}
+
+// Make computer move on game and physical board
+function computerMove() {
+
+    // Reset
+    moves = null
+
+    // Verbose means chess.js 'move' object
+    if (opponent.requiresVerbose) {
+        moves = game.moves({ verbose: true })
+    }
+
+    // Otherwise, plain move description acceptable
+    else {
+        moves = game.moves()
+    }
+
+    // Get agent move
+    nextMove = opponent.selectMove(game, moves, moveNumber = moveCount)
+
+    moveCount++
+
+    if (printMoves) {
+        console.log(nextMove)
+    }
+
+    // Move in internal game
+    game.move(nextMove)
+
+    // Check for end of game
+    if (game.isGameOver()) {
+        displayGameOver(true)
+    }
+
+    // Move on front end board
+    window.setTimeout(updateBoard, NO_TIMEOUT)
+
+    // Allow offline tree building
+    window.setTimeout(activateTreeBuilding, COVER_TIMEOUT);
+
+    // Allow player pick up
+    window.setTimeout(function(){canPickUp = true;}, 100);
+}
+
+
+
+window.onload = function() {            
+    function test() {
+
+        update()
+    }
+    setInterval(test, 0);
+}
+
+var marker = 0
+function update() {
+    if (waitingForComputer) {
+        if (marker < 10) {
+            marker++
+        }
+        else {
+            if (boardReady) {
+                computerMove()
+                // window.setTimeout(computerMove(), 10000)
+                waitingForComputer = false;
+                marker = 0
+            }
+        }
+    }
+
+    else if (gameActive && opponent.offlineTreeBuilding && treeBuildingAllowed && offlineEnabled) {
+        opponent.offlineImproveTree()
+    }
+}
+
+var gameActive = false
+
+
+
+
+
+
+// Used in testing, not necessary anymore
 function simulateGame() {
         
     const agent1 = agents.getAgent("MCTS", 1, true);
@@ -339,91 +447,3 @@ function simulateGame() {
     console.log("Draws         :  " + draws + " (" + Math.round((100 * draws / gamesPlayed + Number.EPSILON) * round) / round + " %)")
     console.log("")
 }
-
-function updateBoard() {
-    board.position(game.fen())
-    boardReady = true;
-}
-
-function activateTreeBuilding() {
-    treeBuildingAllowed = true;
-}
-
-function computerMove() {
-
-    // Reset
-    moves = null
-
-    // Verbose means chess.js 'move' object
-    if (opponent.requiresVerbose) {
-        moves = game.moves({ verbose: true })
-    }
-
-    // Otherwise, plain move description acceptable
-    else {
-        moves = game.moves()
-    }
-
-    // Get agent move
-    nextMove = opponent.selectMove(game, moves, moveNumber = moveCount)
-
-    moveCount++
-
-    if (printMoves) {
-        console.log(nextMove)
-    }
-
-    // Move in internal game
-    game.move(nextMove)
-
-    // Check for end of game
-    if (game.isGameOver()) {
-        console.log("Game over")
-    }
-
-    // Move on front end board
-    window.setTimeout(updateBoard, NO_TIMEOUT)
-
-    // Allow offline tree building
-    window.setTimeout(activateTreeBuilding, COVER_TIMEOUT);
-
-    // Allow player pick up
-    window.setTimeout(function(){canPickUp = true;}, 100);
-}
-
-var timeCount = 0
-var newTime = 0
-startDate = Date.now()
-window.onload = function() {            
-    function test() {
-        // newTime = ((Date.now() - startDate) / 1000)
-        // // if (newTime > timeCount) {
-        // //     timeCount++
-        // // }
-        update()
-    }
-    setInterval(test, 0);
-}
-
-var marker = 0
-function update() {
-    if (waitingForComputer) {
-        if (marker < 10) {
-            marker++
-        }
-        else {
-            if (boardReady) {
-                computerMove()
-                // window.setTimeout(computerMove(), 10000)
-                waitingForComputer = false;
-                marker = 0
-            }
-        }
-    }
-
-    else if (gameActive && opponent.offlineTreeBuilding && treeBuildingAllowed && offlineEnabled) {
-        opponent.offlineImproveTree()
-    }
-}
-
-var gameActive = false

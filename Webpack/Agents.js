@@ -85,8 +85,6 @@ class LightMCTS extends Agent{
 
     // Called per frame / as fast as device is capable
     offlineImproveTree() {
-
-        console.log("werc")
         
         // Batch size allows faster search
         // By maximising against JS natural update limits
