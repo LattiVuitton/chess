@@ -238,45 +238,6 @@ function changeTime(timeLimit) {
     }
 }
 
-// Not needed, since only one agent appears on web page
-function changeAgent(agentName) {
-
-    if (!gameActive) {
-
-        var foundAgent = true
-
-        if (agentName === "random") {
-            setOpponent("random")
-        }
-
-        else if (agentName === "heuristic") {
-            setOpponent("alwaysTake")
-        }
-
-        else if (agentName === "MCTS") {
-            setOpponent("MCTS")
-        }
-            
-        else if (agentName === "LightMCTSAgent") {
-            setOpponent("LightMCTS")
-        }
-            
-        else if (agentName === "NNGreedy") {
-            setOpponent("NNGreedy")
-        }
-        
-        else {
-            foundAgent = false
-        }
-
-        if (foundAgent) {
-            console.log("Changing agent to '" + agentName + "'")
-        }
-    }
-}
-
-// Agent listeners --------------------------- end
-
 function swapColor() {
     if (gameActive) {
         if (moveCount == 2 && opponent.WorB || game.fen() == STARTING_FEN) {
