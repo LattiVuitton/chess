@@ -5,37 +5,20 @@
     <link rel="stylesheet" href="css/chessboard-1.0.0.min.css">
     <script src="https://code.jquery.com/jquery-1.12.4.min.js"></script>
     <script src="chessboard-1.0.0.js"></script>
-    <!-- <script src="stockfish.js"></script> -->
     <link rel="stylesheet" href="css/page.css">
 
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>App</title>
+    <title>Chess App</title>
     <h1>Chess</h1>
 </head>
 <body>
-    <script
-    src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.js">
-    </script>
-    <!-- <canvas id="myChart" style="width:100%;max-width:700px;background-color: aqua;"></canvas> -->
-
     <div id="myBoard" style="width: 400px">werc</div>
     <div class="slidecontainer">
         <input type="range" min="1" max="100" value="50" class="slider" id="myRange">
       </div>
-    <button id="CompVComp">Computer V Computer</button>
     <button id="colorButton">Change Color</button>
     <button id="resetButton">Reset</button>
-    <button id="allowBuilding">Tree Building</button>
-
-    <h3 id="playerColor">Playing as: White</h3>
-
-    <!-- Agent buttons -->
-    <button id="randomAgent">Random</button>
-    <button id="heuristicAgent">Heuristic</button>
-    <button id="NNGreedy">NN Greedy</button>
-    <button id="MCTSAgent" style="height: 50px; width: 100px">MCTS</button>
-    <button id="LightAgent" style="height: 50px; width: 100px">Light MCTS</button>
 
     <div style=
     "background-color: bisque;
@@ -49,15 +32,7 @@
         <button id="changeTo5">5</button>
     </div>
 
-    <button id="train">Train Model</button>
-
-    <p>Select local CSV File:</p>
-        <input id="csv" type="file">
-
-        <output id="out">
-            file contents will appear here
-        </output>
-    <script src="bundlecopy.js"></script>
+    <script src="Webpack/_bundle.js"></script>
 
 </body>
 </html>
