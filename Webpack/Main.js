@@ -1,6 +1,6 @@
 var agents = require('./Agents');
 
-
+console.log("werc")
 
 const agent1 = agents.getAgent("MCTS", 1, true);
 const agent2 = agents.getAgent("random", 2, false);

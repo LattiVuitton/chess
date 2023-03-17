@@ -12,7 +12,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "deploy": "npm run build&&gh-pages -d build"
+    "start": "webpack --mode production -w"
   },
   "keywords": [],
   "author": "",

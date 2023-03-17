@@ -12,23 +12,29 @@
     <title>Chess App</title>
 </head>
 <body>
-    <div id="HeadingDiv">
+    <div id="HeadingDiv" class="HeadingDiv">
         <h1 id="HeadingInDiv">Play Against Computer</h1>
     </div>
 
     <div id="myBoard" style="width: 400px; margin: auto">werc</div>
 
-    <div style="background-color: aqua;"> 
-        <div style="background-color: beige; text-align: center;" class="slidecontainer">
-            <div>
-                <p1>Thinking Time: 1s</p1>
+    <div id="FooterDiv" class="HeadingDiv">
+
+        <div id="FooterHolder">
+
+            <button id="colorButton">Change Color</button>
+            <button id="resetButton">Reset</button>
+            
+            <div  class="slidecontainer">
+                <div style="margin-bottom: 8px; margin-top: -6px;">
+                    <p1 id="Thinking">Thinking Time: 1s</p1>
+                </div>
+                <div>
+                    <input type="range" min="0" max="100" value="10" class="slider" id="timeSlider">
+                </div>
             </div>
-            <div>
-                <input type="range" min="0" max="100" value="10" class="slider" id="timeSlider">
-            </div>
-          </div>
-        <button id="colorButton">Change Color</button>
-        <button id="resetButton">Reset</button>
+        </div>
+        
     </div>
 
 

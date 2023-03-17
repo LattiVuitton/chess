@@ -3,13 +3,15 @@ body {
     padding: 0;
     border: 0;
     background-color: rgb(39, 39, 39);
+    font-family:'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+    color: whitesmoke;
 }
 
-#HeadingDiv{
-    height: 80px;
+.HeadingDiv{
+    height: 50px;
     width: 100%;
     text-align: center;
-    padding-top: 40px;; 
+    padding-top: 25px;; 
     margin:0; 
     border: 0;
     position: inherit;
@@ -17,11 +19,9 @@ body {
 }
 
 #HeadingInDiv{
-    font-family:'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
-    color: whitesmoke;
-    font-size: 22px;
+    font-size: 20px;
     word-spacing: 2px;
-    line-height: 37px;
+    line-height: 20px;
     height: 50%;
     vertical-align: middle;
     padding:0;
@@ -29,7 +29,64 @@ body {
     border: 0;
 }
 
-button{
-    background-color: rebeccapurple;
+#FooterHolder{
+    margin-left: 400px;
+    width : 400px;
+    height: 50%;
+    display: flex;
 }
 
+.slidecontainer{
+    text-align: center;
+    margin: auto;
+}
+
+#timeSlider{
+    background: rgb(147, 147, 147);
+}
+
+.slider {
+    -webkit-appearance: none;
+    height: 15px;
+    border-radius: 5px;  
+    background: #7a7a7a;
+    outline: none;
+    opacity: 0.7;
+    -webkit-transition: .2s;
+    transition: opacity .2s;
+  }
+
+.slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 15px;
+    height: 15px;
+    border-radius: 50%; 
+    background: #ffffff;
+    cursor: pointer;
+  }
+
+.slider::-moz-range-thumb {
+    width: 15px;
+    height: 15px;
+    border-radius: 50%;
+    background: #ffffff;
+    cursor: pointer;
+  }
+
+button{
+    background-color: rgb(91, 91, 91);
+    border: 0;
+    position: absolute;
+    width: 100px;
+    height: 30px;
+    font-family:'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+    color: whitesmoke;
+}
+/* 
+#colorButton{
+    margin-left: 200px;
+}
+
+#resetButton{
+} */

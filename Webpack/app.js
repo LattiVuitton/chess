@@ -10,6 +10,8 @@ const LONG_TIMEOUT = 400;
 
 const BOARD_WIDTH = 8;
 
+const STARTING_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+
 var printMoves = false;
 
 var offlineEnabled = false;
@@ -40,7 +42,7 @@ board = Chessboard('myBoard', config)
 var WorB = true;
 setOpponent("LightMCTS")
 
-const MIN_TIME = 0.0000001;
+const MIN_TIME = 0.1;
 const MAX_TIME = 10;
 
 var slider = document.getElementById("timeSlider")
@@ -52,6 +54,42 @@ let moveCount = 1;
 
 var colorButton = document.getElementById("colorButton");
 var resetButton = document.getElementById("resetButton")
+
+// Size management
+const SCREEN_FRACTION = 1//0.9;
+
+function resizeEverything(){
+
+    let subtractHeight = 0;
+    subtractHeight += document.getElementById("HeadingDiv").offsetHeight;
+    subtractHeight += document.getElementById("FooterDiv").offsetHeight;
+
+    let resizeWidth = Math.min(SCREEN_FRACTION * window.innerWidth, SCREEN_FRACTION * (window.innerHeight - subtractHeight))
+
+    document.getElementById("FooterHolder").style.width = resizeWidth + "px";
+    document.getElementById("FooterHolder").style.marginLeft = (window.innerWidth - resizeWidth) / 2 + "px";
+
+    document.getElementById("myBoard").style.width = resizeWidth + "px";
+
+    document.getElementById("colorButton").style.marginLeft = 0 + "px";
+    document.getElementById("resetButton").style.marginLeft = (
+        resizeWidth - document.getElementById("resetButton").offsetWidth
+    ) + "px";
+
+    // board = Chessboard('myBoard', config)
+    board.resize()
+}
+
+resizeEverything()
+
+window.addEventListener('resize', () => { 
+
+    resizeEverything()
+
+})
+
+
+
 
 if (navigator.userAgent.match(/Android/i)
 || navigator.userAgent.match(/webOS/i)
@@ -165,7 +203,6 @@ function onDrop(source, target) {
 
 }
 
-
 function setComp() {
     // Move using active agent
     waitingForComputer = true
@@ -182,7 +219,6 @@ resetButton.addEventListener("click", function () {
 }, false);
 
 function resetGame(){
-    console.log("resetting")
     game = new chess.Chess()
     board.position(game.fen())
     canPickUp = true;
@@ -193,13 +229,10 @@ function resetGame(){
     }
 }
 
-// Auto set MCTS
-// changeAgent("LightMCTSAgent")
-
 function changeTime(timeLimit) {
-    console.log("Setting time limit to " + timeLimit + " seconds.")
     if (opponent != null) {
         if (opponent.hasTimeLimit) {
+            document.getElementById("Thinking").innerHTML = "Thinking Time: " + (Math.round(timeLimit*10)/10) + "s"
             opponent.setTimeLimit(timeLimit)
         }
     }
@@ -246,7 +279,8 @@ function changeAgent(agentName) {
 
 function swapColor() {
     if (gameActive) {
-        if (moveCount == 2 && opponent.WorB) {
+        if (moveCount == 2 && opponent.WorB || game.fen() == STARTING_FEN) {
+            moveCount = 1
             game = new chess.Chess()
             board.position(game.fen())
             window.setTimeout(swapColorHelper, 500)
@@ -290,8 +324,9 @@ function swapColorHelper() {
             onDragStart: onDragStart,
             onDrop: onDrop,
             // onSnapEnd: onSnapEnd
-          }
+        }
         
+        gameActive = true
         board = Chessboard('myBoard', config)
         canPickUp = true;
     }
