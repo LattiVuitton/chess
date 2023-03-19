@@ -380,7 +380,6 @@ function update() {
         else {
             if (boardReady) {
                 computerMove()
-                // window.setTimeout(computerMove(), 10000)
                 waitingForComputer = false;
                 marker = 0
             }
