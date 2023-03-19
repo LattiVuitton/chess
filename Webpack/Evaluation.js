@@ -248,24 +248,17 @@ let positionScore = 0
 
 let testPiece = null;
 
-let pawnStructure = 0
-let myPawnInRow = false
-let opPawnInRow = false
-
 let multiplier = 1
 
 // Changes between early and end game
 let valueWeight = 0
 let positionWeight = 0
-let pawnsWeight = 0
 
-let valueWeightEnd = 0.85
-let positionWeightEnd = 0.15
-let pawnsWeightEnd = 0
+let valueWeightEnd = 0.9
+let positionWeightEnd = 0.1
 
-let valueWeightEarly = 0.90
-let positionWeightEarly = 0.1
-let pawnsWeightEarly = 0
+let valueWeightEarly = 0.98
+let positionWeightEarly = 0.02
 
 exports.getEarly = function getEarly() {
     return isEarlyGame;
@@ -305,13 +298,11 @@ function setGamePeriod(earlyGame) {
     if (earlyGame) {
         valueWeight = valueWeightEarly;
         positionWeight = positionWeightEarly;
-        pawnsWeight = pawnsWeightEarly;
     }
 
     else {
         valueWeight = valueWeightEnd;
         positionWeight = positionWeightEnd;
-        pawnsWeight = pawnsWeightEnd;
     }
 }
 
@@ -322,15 +313,11 @@ exports.complexEval = function earlyGameEval(game, WorB) {
     else { myTeamColor = 'b'; }
 
     // Reset temporary variables
-    pawnStructure = 0
     positionScore = 0
     valueScore = 0
 
     // Looping through files
     for (let i = 0; i < letters.length; i++) {
-
-        myPawnInRow = false
-        opPawnInRow = false
 
         // Looping through rows
         for (let j = 1; j < letters.length + 1; j++) {
@@ -345,94 +332,13 @@ exports.complexEval = function earlyGameEval(game, WorB) {
                 // Score additions
                 positionScore += multiplier * getPieceValue(letters[i], j, testPiece.type, testPiece.color, !isEarlyGame)
                 valueScore += multiplier * pieceValues[testPiece.type]
-
-                // Pawn structure work
-                if (testPiece.type === 'p') {
-
-                    // Only for files a to g, excluding row 1 and 8
-                    if (i < letters.length - 1 && j < 8 && j > 1) {
-
-                        // If adjacent pawn of my color is mine
-                        if (game.get(letters[i + 1] + j).type === 'p') {
-                            
-                            // If color matches
-                            if (game.get(letters[i + 1] + j).color === testPiece.color) {
-
-                                pawnStructure += multiplier * CONNECTED_FLAT_REWARD
-                            }
-                        }
-
-                        // If forward stepped pawn of my color is mine
-                        if (game.get(letters[i + 1] + (j+1)).type === 'p') {
-                            
-                            // If color matches
-                            if (game.get(letters[i + 1] + (j+1)).color === testPiece.color) {
-
-                                pawnStructure += multiplier * CONNECTED_STEP_REWARD
-                            }
-                        }
-
-                        // If forward stepped pawn of my color is mine
-                        if (game.get(letters[i + 1] + (j-1)).type === 'p') {
-                            
-                            // If color matches
-                            if (game.get(letters[i + 1] + (j-1)).color === testPiece.color) {
-
-                                pawnStructure += multiplier * CONNECTED_STEP_REWARD
-                            }
-                        }
-                    }
-
-                    // Requires check again (improve later)
-                    if (testPiece.color === myTeamColor) {
-
-                        if (myPawnInRow) {
-
-                            // Doubled pawn
-                            pawnStructure -= DOUBLED_PAWN_PENALTY
-                        }
-
-                        else {
-                            myPawnInRow = true
-                        }
-                    }
-
-                    // Opponent pawn
-                    else {
-
-                        if (opPawnInRow) {
-
-                            // Doubled pawn
-                            pawnStructure += DOUBLED_PAWN_PENALTY
-                        }
-
-                        else {
-                            opPawnInRow = true
-                        }
-                    }
-                }
             }
-        }
-
-        // Checking for passed pawns (no hanging pawn check yet)
-        if (myPawnInRow) {
-
-            // Passed pawn for me
-            if (!opPawnInRow) {
-                pawnStructure += PASSED_PAWN_REWARD;
-            }
-        }
-
-        // Opponent has passed pawn
-        else if (!opPawnInRow) {
-            pawnStructure -= PASSED_PAWN_REWARD;
         }
     }
 
     // Sum weight
     return (
         positionWeight * ((positionScore - MIN_BOARD_POSITION) / (MAX_BOARD_POSITION - MIN_BOARD_POSITION)) +
-        valueWeight * ((valueScore - MIN_BOARD) / (MAX_BOARD - MIN_BOARD)) +
-        pawnsWeight * ((pawnStructure - MIN_PAWN_STRUCTURE) / (MAX_PAWN_STRUCTURE - MIN_PAWN_STRUCTURE))
+        valueWeight * ((valueScore - MIN_BOARD) / (MAX_BOARD - MIN_BOARD))
     )
 }
