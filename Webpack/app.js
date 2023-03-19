@@ -96,12 +96,6 @@ function resizeEverything(){
     board.resize()
 }
 
-resizeEverything()
-
-window.addEventListener('resize', () => { 
-    resizeEverything()
-})
-
 // Check for mobile application being used
 if (navigator.userAgent.match(/Android/i)
 || navigator.userAgent.match(/webOS/i)
@@ -112,6 +106,11 @@ if (navigator.userAgent.match(/Android/i)
     || navigator.userAgent.match(/Windows Phone/i)) {
 }
 else {
+    resizeEverything()
+
+    window.addEventListener('resize', () => { 
+        resizeEverything()
+    })
 }
 
 // Not really necessary given single agent
