@@ -56,7 +56,7 @@ var colorButton = document.getElementById("colorButton");
 var resetButton = document.getElementById("resetButton")
 
 // Size management
-const SCREEN_FRACTION = 1//0.9;
+const SCREEN_FRACTION = 1;
 
 document.getElementById("gameOver").style.opacity = 0;
 
@@ -73,6 +73,7 @@ function displayGameOver(On) {
 function resizeEverything(){
 
     let subtractHeight = 0;
+
     subtractHeight += document.getElementById("HeadingDiv").offsetHeight;
     subtractHeight += document.getElementById("FooterDiv").offsetHeight;
 
@@ -82,6 +83,7 @@ function resizeEverything(){
     document.getElementById("FooterHolder").style.marginLeft = (window.innerWidth - resizeWidth) / 2 + "px";
 
     document.getElementById("myBoard").style.width = resizeWidth + "px";
+    document.getElementById("HeadingDiv").style.width = window.innerWidth + "px";
 
     document.getElementById("colorButton").style.marginLeft = 0 + "px";
     document.getElementById("resetButton").style.marginLeft = (
@@ -96,22 +98,11 @@ function resizeEverything(){
     board.resize()
 }
 
-// Check for mobile application being used
-if (navigator.userAgent.match(/Android/i)
-|| navigator.userAgent.match(/webOS/i)
-|| navigator.userAgent.match(/iPhone/i)
-|| navigator.userAgent.match(/iPad/i)
-|| navigator.userAgent.match(/iPod/i)
-|| navigator.userAgent.match(/BlackBerry/i)
-    || navigator.userAgent.match(/Windows Phone/i)) {
-}
-else {
-    resizeEverything()
+resizeEverything()
 
-    window.addEventListener('resize', () => { 
-        resizeEverything()
-    })
-}
+window.addEventListener('resize', () => { 
+    resizeEverything()
+})
 
 // Not really necessary given single agent
 function getID() {
