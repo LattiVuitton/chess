@@ -20,3 +20,5 @@ The inspiration for this project came from a desire to create a simple, user-fri
 ## Future Directions
 
 The project is still a work in progress, and there are several potential areas for future development. One possible avenue of improvement would be to implement more advanced board evaluation strategy, especially through neural nets. Additionally, improvements to the evaluation function could be implemented to improve the playing strength of the AI. Finally, the user interface could be further improved to make the application more user-friendly and visually appealing. These and other potential areas for future development are outlined in more detail in the project's wiki: https://github.com/LattiVuitton/chess/wiki.
+
+<img width="526" alt="image" src="https://user-images.githubusercontent.com/111042692/233845240-8560b680-6c91-47cf-b1fa-1d87e8c317fc.png">
